@@ -4,17 +4,11 @@ import { loadStripe, StripeElementsOptions } from '@stripe/stripe-js';
 import config from "../../config.json"
 import CheckoutForm from "./CheckoutForm";
 import Button from "react-bootstrap/Button"
+import Dropdown from "react-bootstrap/Dropdown"
+import DropdownButton from "react-bootstrap/DropdownButton"
 import { IPaymentMethod } from "../../models/Checkout";
 
 const stripePromise = loadStripe(config.STRIPE_PUBLIC_API_KEY)
-
-type StripeTypes = {
-    clientSecret: string;
-    appearance: {
-        theme: "stripe",
-
-    }
-};
 
 const paymentMethodsList: IPaymentMethod[] = [
     {
@@ -68,6 +62,17 @@ export default function Checkout() {
             <h1>
                 Checkout
             </h1>
+            <DropdownButton
+                id="dropdown-button-dark-example2"
+                variant="secondary"
+                menuVariant="dark"
+                title="Dropdown button"
+                className="mt-2"
+            >
+                <Dropdown.Item>Europa</Dropdown.Item>
+                <Dropdown.Item>Resten av världen</Dropdown.Item>
+
+            </DropdownButton>
             <Button onClick={methodPaymentButtonHandler} value="card">Kort</Button>
             <Button onClick={methodPaymentButtonHandler} value="sepa_debit">SEPA</Button>
             {clientSecret !== "" && (
