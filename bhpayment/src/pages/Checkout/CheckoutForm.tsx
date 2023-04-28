@@ -18,10 +18,6 @@ const CheckoutForm = (props: IProps) => {
 
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [formInitialized, setFormInitialized] = useState<boolean>(false)
-    const params = useLocation();
-    const secret: any = params.state;
-
-    console.log("secret: ", secret)
 
     useEffect(() => {
         setFormInitialized(true)

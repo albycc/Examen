@@ -8,7 +8,7 @@ import Dropdown from "react-bootstrap/Dropdown"
 import DropdownButton from "react-bootstrap/DropdownButton"
 import { IPaymentMethod } from "../../models/Checkout";
 
-const stripePromise = loadStripe(config.STRIPE_PUBLIC_API_KEY)
+const stripePromise = loadStripe(config.STRIPE_PUBLIC_API_TEST_KEY)
 
 const paymentMethodsList: IPaymentMethod[] = [
     {
