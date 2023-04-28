@@ -1,16 +1,31 @@
 import react, { useState, useEffect } from "react"
-import { PaymentElement, useStripe, useElements } from "@stripe/react-stripe-js";
+import { PaymentElement, useStripe, useElements, CardNumberElement, CardExpiryElement, CardCvcElement } from "@stripe/react-stripe-js";
 import { StripePaymentElementOptions } from '@stripe/stripe-js';
 import Form from "react-bootstrap/Form"
 import Button from "react-bootstrap/Button"
+import { IPaymentMethod } from "../../models/Checkout";
+import { useLocation } from "react-router-dom";
 
-const CheckoutForm = () => {
+interface IProps {
+    paymentMethod?: IPaymentMethod;
+}
+
+const CheckoutForm = (props: IProps) => {
     const stripe = useStripe();
     const elements = useElements();
 
     const [message, setMessage] = useState<string>("");
 
     const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [formInitialized, setFormInitialized] = useState<boolean>(false)
+    const params = useLocation();
+    const secret: any = params.state;
+
+    console.log("secret: ", secret)
+
+    useEffect(() => {
+        setFormInitialized(true)
+    }, [])
 
     useEffect(() => {
         if (!stripe) {
@@ -46,6 +61,20 @@ const CheckoutForm = () => {
         });
     }, [stripe]);
 
+    useEffect(() => {
+        if (formInitialized && props.paymentMethod) {
+            console.log("props.paymentMethod")
+            elements?.update({
+                mode: 'payment',
+                paymentMethodTypes: [props.paymentMethod.paymentMethod],
+                currency: props.paymentMethod.currency,
+                amount: 1200
+            })
+
+        }
+
+    }, [props.paymentMethod])
+
     const onSubmitHandler = async (e: React.FormEvent) => {
         e.preventDefault()
         if (!stripe || !elements) {
@@ -68,15 +97,20 @@ const CheckoutForm = () => {
         layout: "tabs"
     }
 
+
+
     return (
-        <Form onSubmit={onSubmitHandler}>
-            <Form.Label>Namn</Form.Label>
-            <Form.Control type="text" placeholder="Ange namn"></Form.Control>
-            <Form.Label>Email</Form.Label>
-            <Form.Control type="email" placeholder="Ange email"></Form.Control>
-            <PaymentElement id="payment-element" options={paymentElementOptions} />
-            <Button type="submit" disabled={isLoading || !stripe || !elements}>Betala</Button>
-        </Form>
+        <>
+            <Form onSubmit={onSubmitHandler}>
+                <Form.Label>Namn</Form.Label>
+                <Form.Control type="text" placeholder="Ange namn"></Form.Control>
+                <Form.Label>Email</Form.Label>
+                <Form.Control type="email" placeholder="Ange email"></Form.Control>
+
+                <PaymentElement id="payment-element" options={paymentElementOptions} />
+                <Button type="submit" disabled={isLoading || !stripe || !elements}>Betala</Button>
+            </Form>
+        </>
 
     )
 }

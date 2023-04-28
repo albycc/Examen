@@ -13,19 +13,16 @@ app.use(cors());
 
 const PORT = 5000;
 
-app.post("/create-payment-intent", async (req, res) => {
-  const { productName, sum } = req.body;
+app.post("/payment-intent-secret", async (req, res) => {
+  const { currency, sum, paymentMethod } = req.body;
   console.log("req.body: ", req.body);
-  console.log("productName: ", productName);
   console.log("sum: ", sum);
 
   // Create a PaymentIntent with the order amount and currency
   const paymentIntent = await stripe.paymentIntents.create({
     amount: sum,
-    currency: "sek",
-    automatic_payment_methods: {
-      enabled: true,
-    },
+    currency: currency,
+    payment_method_types: [paymentMethod],
   });
 
   res.send({
