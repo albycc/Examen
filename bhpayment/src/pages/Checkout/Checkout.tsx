@@ -2,53 +2,65 @@ import react, { useState, useEffect } from "react"
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe, StripeElementsOptions } from '@stripe/stripe-js';
 import config from "../../config.json"
-import CheckoutForm from "./CheckoutForm";
+import CardCheckoutForm from "./CardCheckoutForm";
+import SepaCheckoutForm from "./SepaCheckoutForm";
+import PayCheckoutForm from "./PayCheckoutForm";
 import Button from "react-bootstrap/Button"
 import Dropdown from "react-bootstrap/Dropdown"
 import DropdownButton from "react-bootstrap/DropdownButton"
 import { IPaymentMethod } from "../../models/Checkout";
+import axios from "axios";
 
 const stripePromise = loadStripe(config.STRIPE_PUBLIC_API_TEST_KEY)
 
 const paymentMethodsList: IPaymentMethod[] = [
     {
+        paymentName: "card",
         paymentMethod: "card",
         currency: "sek"
     },
     {
+        paymentName: "sepa",
         paymentMethod: "sepa_debit",
         currency: "eur"
     },
-
+    {
+        paymentName: "pay",
+        paymentMethod: "card",
+        currency: "sek"
+    }
 ]
 
 
 export default function Checkout() {
     const [clientSecret, setClientSecret] = useState("")
     const [paymentMethod, setPaymentMethod] = useState<IPaymentMethod>()
+    const [productId, setProductId] = useState<string>("price_1Mytk6HKeMBcSTk8eYnieGRt")
 
     useEffect(() => {
         // Skapa PaymentIntent object 
         // summa anges som cents, så 100 cents blir 1$, vilket är 0.1 kr.
         console.log("useEffect paymentMethod")
         if (paymentMethod) {
-            fetch(config.SERVER_URL + "payment-intent-secret", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ currency: paymentMethod.currency, sum: 12000, paymentMethod: paymentMethod.paymentMethod })
-            })
-                .then((res) => res.json())
+            axios.post(config.SERVER_URL + "create-payment-intent",
+                { currency: paymentMethod.currency, productId, paymentMethod: paymentMethod.paymentMethod }
+            )
                 .then((data) => {
-                    console.log("clientSecret: ", data.clientSecret)
-                    setClientSecret(data.clientSecret)
+                    console.log("clientSecret: ", data)
+                    if (data.data.clientSecret) {
+
+                        setClientSecret(data.data.clientSecret)
+                    }
                 }).catch(err => console.error(err))
         }
+
     }, [paymentMethod]);
 
-    const methodPaymentButtonHandler = (e: any) => {
-        const value = paymentMethodsList.find(method => method.paymentMethod === e.target.value)
+    const methodPaymentButtonHandler = async (e: any) => {
+        const value = paymentMethodsList.find(method => method.paymentName === e.target.value)
         console.log("methodPaymentButtonHandler ", value)
         setPaymentMethod(value)
+
     }
 
 
@@ -74,10 +86,13 @@ export default function Checkout() {
 
             </DropdownButton>
             <Button onClick={methodPaymentButtonHandler} value="card">Kort</Button>
-            <Button onClick={methodPaymentButtonHandler} value="sepa_debit">SEPA</Button>
+            <Button onClick={methodPaymentButtonHandler} value="sepa">SEPA</Button>
+            <Button onClick={methodPaymentButtonHandler} value="pay">Apple Google Link pay</Button>
             {clientSecret !== "" && (
                 <Elements options={options} stripe={stripePromise}>
-                    <CheckoutForm paymentMethod={paymentMethod} />
+                    {paymentMethod?.paymentName === 'card' && <CardCheckoutForm clientSecret={clientSecret} />}
+                    {paymentMethod?.paymentName === 'sepa' && <SepaCheckoutForm clientSecret={clientSecret} />}
+                    {paymentMethod?.paymentName === 'pay' && <PayCheckoutForm />}
 
                 </Elements>
             )}

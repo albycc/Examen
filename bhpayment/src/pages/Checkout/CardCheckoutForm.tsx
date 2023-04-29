@@ -1,4 +1,4 @@
-import react, { useState, useEffect } from "react"
+import react, { useState, useEffect, useMemo } from "react"
 import { PaymentElement, useStripe, useElements, CardNumberElement, CardExpiryElement, CardCvcElement } from "@stripe/react-stripe-js";
 import { StripePaymentElementOptions } from '@stripe/stripe-js';
 import Form from "react-bootstrap/Form"
@@ -6,13 +6,38 @@ import Button from "react-bootstrap/Button"
 import { IPaymentMethod } from "../../models/Checkout";
 import { useLocation } from "react-router-dom";
 
+const useOptions = () => {
+    const options = useMemo(
+        () => ({
+            style: {
+                base: {
+                    fontSize: "10px",
+                    color: "#424770",
+                    letterSpacing: "0.025em",
+                    fontFamily: "Roboto, Source Code Pro, monospace, SFUIDisplay",
+                    "::placeholder": {
+                        color: "#aab7c4"
+                    }
+                },
+                invalid: {
+                    color: "#9e2146"
+                },
+
+            }
+        }), []
+    );
+
+    return options;
+};
+
 interface IProps {
-    paymentMethod?: IPaymentMethod;
+    clientSecret: string;
 }
 
-const CheckoutForm = (props: IProps) => {
+const CardCheckoutForm = (props: IProps) => {
     const stripe = useStripe();
     const elements = useElements();
+    const options = useOptions();
 
     const [message, setMessage] = useState<string>("");
 
@@ -57,19 +82,19 @@ const CheckoutForm = (props: IProps) => {
         });
     }, [stripe]);
 
-    useEffect(() => {
-        if (formInitialized && props.paymentMethod) {
-            console.log("props.paymentMethod")
-            elements?.update({
-                mode: 'payment',
-                paymentMethodTypes: [props.paymentMethod.paymentMethod],
-                currency: props.paymentMethod.currency,
-                amount: 1200
-            })
+    // useEffect(() => {
+    //     if (formInitialized && props.paymentMethod) {
+    //         console.log("props.paymentMethod")
+    //         elements?.update({
+    //             mode: 'payment',
+    //             paymentMethodTypes: [props.paymentMethod.paymentMethod],
+    //             currency: props.paymentMethod.currency,
+    //             amount: 1200
+    //         })
 
-        }
+    //     }
 
-    }, [props.paymentMethod])
+    // }, [props.paymentMethod])
 
     const onSubmitHandler = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -80,19 +105,34 @@ const CheckoutForm = (props: IProps) => {
 
         setIsLoading(true);
 
-        const { error } = await stripe.confirmPayment({
-            elements,
-            confirmParams: {
-                // Make sure to change this to your payment completion page
-                return_url: "http://localhost:3000",
-            },
-        });
-    }
+        const cardElement = elements.getElement(CardNumberElement)
 
-    const paymentElementOptions: StripePaymentElementOptions = {
-        layout: "tabs"
-    }
+        if (cardElement !== null) {
+            const { error, paymentIntent } = await stripe.confirmCardPayment(props.clientSecret, {
+                payment_method: {
+                    card: cardElement,
+                    billing_details: {
+                        name: "Test Testsson",
+                        email: "testsson@testmail.com"
+                    }
 
+                },
+
+            });
+
+            if (error && error.message) {
+                setMessage(error.message)
+            }
+            else if (paymentIntent?.status === 'succeeded') {
+                setMessage('Done!')
+                setIsLoading(false)
+
+
+            }
+
+        }
+
+    }
 
 
     return (
@@ -103,7 +143,10 @@ const CheckoutForm = (props: IProps) => {
                 <Form.Label>Email</Form.Label>
                 <Form.Control type="email" placeholder="Ange email"></Form.Control>
 
-                <PaymentElement id="payment-element" options={paymentElementOptions} />
+                {/* <PaymentElement id="payment-element" options={paymentElementOptions} /> */}
+                <CardNumberElement options={options} />
+                <CardCvcElement options={options} />
+                <CardExpiryElement options={options} />
                 <Button type="submit" disabled={isLoading || !stripe || !elements}>Betala</Button>
             </Form>
         </>
@@ -111,4 +154,4 @@ const CheckoutForm = (props: IProps) => {
     )
 }
 
-export default CheckoutForm
+export default CardCheckoutForm

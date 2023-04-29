@@ -1,6 +1,5 @@
 {
     "SERVER_URL": "http://localhost:5000/",
-    "BE_URL": "http://localhost:5000/",
     "CLIENT_URL": "http://localhost:3000/",
     "STRIPE_PUBLIC_API_TEST_KEY": "pk_test_51MnKfQHKeMBcSTk8UlvTjaOJ91qmtglFhHkxhKyKJQvgMrkPuCtJZyghft3m0bXgeEq7gDnrdAS47WRjWVIrgcIO004uHj3x9s",
     "STRIPE_PRODUCT_ID_SUBSCRIPTION": "price_1MyteNHKeMBcSTk8OG6MZGyc",
