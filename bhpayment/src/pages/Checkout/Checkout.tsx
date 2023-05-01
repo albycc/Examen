@@ -57,10 +57,15 @@ export default function Checkout() {
     }, [paymentMethod]);
 
     const methodPaymentButtonHandler = async (e: any) => {
-        const value = paymentMethodsList.find(method => method.paymentName === e.target.value)
-        console.log("methodPaymentButtonHandler ", value)
-        setPaymentMethod(value)
+        const method = paymentMethodsList.find(method => method.paymentName === e.target.value)
 
+        if (method) {
+            if (method.paymentName === paymentMethod?.paymentName) {
+                return
+            }
+            console.log("methodPaymentButtonHandler ", method)
+            setPaymentMethod(method)
+        }
     }
 
 
@@ -80,6 +85,7 @@ export default function Checkout() {
                 menuVariant="dark"
                 title="Dropdown button"
                 className="mt-2"
+                onChange={(event) => console.log(event.target)}
             >
                 <Dropdown.Item>Europa</Dropdown.Item>
                 <Dropdown.Item>Resten av världen</Dropdown.Item>
@@ -92,7 +98,7 @@ export default function Checkout() {
                 <Elements options={options} stripe={stripePromise}>
                     {paymentMethod?.paymentName === 'card' && <CardCheckoutForm clientSecret={clientSecret} />}
                     {paymentMethod?.paymentName === 'sepa' && <SepaCheckoutForm clientSecret={clientSecret} />}
-                    {paymentMethod?.paymentName === 'pay' && <PayCheckoutForm />}
+                    {paymentMethod?.paymentName === 'pay' && <PayCheckoutForm clientSecret={clientSecret} />}
 
                 </Elements>
             )}

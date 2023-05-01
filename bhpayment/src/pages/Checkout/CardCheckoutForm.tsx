@@ -1,17 +1,17 @@
 import react, { useState, useEffect, useMemo } from "react"
 import { PaymentElement, useStripe, useElements, CardNumberElement, CardExpiryElement, CardCvcElement } from "@stripe/react-stripe-js";
-import { StripePaymentElementOptions } from '@stripe/stripe-js';
+import { StripePaymentElementOptions, StripeCardNumberElementOptions } from '@stripe/stripe-js';
 import Form from "react-bootstrap/Form"
 import Button from "react-bootstrap/Button"
 import { IPaymentMethod } from "../../models/Checkout";
 import { useLocation } from "react-router-dom";
 
 const useOptions = () => {
-    const options = useMemo(
+    const options: StripeCardNumberElementOptions = useMemo(
         () => ({
             style: {
                 base: {
-                    fontSize: "10px",
+                    fontSize: "25px",
                     color: "#424770",
                     letterSpacing: "0.025em",
                     fontFamily: "Roboto, Source Code Pro, monospace, SFUIDisplay",

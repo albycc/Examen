@@ -1,10 +1,23 @@
 import react, { useState, useEffect, useMemo } from "react"
-import { PaymentElement, useStripe, useElements, IbanElement } from "@stripe/react-stripe-js";
-import { StripePaymentElementOptions, StripeIbanElementOptions, } from '@stripe/stripe-js';
+import {
+    PaymentElement,
+    useStripe,
+    useElements,
+    IbanElement,
+    AddressElement
+} from "@stripe/react-stripe-js";
+import {
+    StripePaymentElementOptions,
+    StripeIbanElementOptions,
+    StripeAddressElementOptions,
+    StripeAddressElementChangeEvent
+} from '@stripe/stripe-js';
 import Form from "react-bootstrap/Form"
 import Button from "react-bootstrap/Button"
-import { IPaymentMethod } from "../../models/Checkout";
+import { IAddress, IBillingDetails, IPaymentMethod } from "../../models/Checkout";
 import { useLocation } from "react-router-dom";
+import DropdownButton from "react-bootstrap/DropdownButton";
+import Dropdown from "react-bootstrap/Dropdown"
 
 interface IProps {
     clientSecret: string;
@@ -17,11 +30,18 @@ const SepaCheckoutForm = (props: IProps) => {
     const [message, setMessage] = useState<string>("");
 
     const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [formInitialized, setFormInitialized] = useState<boolean>(false)
 
-    useEffect(() => {
-        setFormInitialized(true)
-    }, [])
+    const [email, setEmail] = useState<string>()
+    const [billingDetails, setBillingDetails] = useState<IBillingDetails>({
+
+        email: null,
+        name: null,
+        phone: null
+    })
+
+
+    console.log("billingDetails: ", billingDetails)
+
 
     useEffect(() => {
         if (!stripe) {
@@ -57,20 +77,6 @@ const SepaCheckoutForm = (props: IProps) => {
         });
     }, [stripe]);
 
-    // useEffect(() => {
-    //     if (formInitialized && props.paymentMethod) {
-    //         console.log("props.paymentMethod")
-    //         elements?.update({
-    //             mode: 'payment',
-    //             paymentMethodTypes: [props.paymentMethod.paymentMethod],
-    //             currency: props.paymentMethod.currency,
-    //             amount: 1200
-    //         })
-
-    //     }
-
-    // }, [props.paymentMethod])
-
     const onSubmitHandler = async (e: React.FormEvent) => {
         e.preventDefault()
         if (!stripe || !elements) {
@@ -89,8 +95,10 @@ const SepaCheckoutForm = (props: IProps) => {
                 payment_method: {
                     sepa_debit: ibanElement,
                     billing_details: {
-                        name: "Test Testsson",
-                        email: "testsson@testmail.com"
+                        name: billingDetails.name || "",
+                        email: billingDetails.email || "",
+                        phone: billingDetails.phone || ""
+
                     }
                 }
 
@@ -111,10 +119,14 @@ const SepaCheckoutForm = (props: IProps) => {
 
     }
 
+    const addressChangeHandler = () => {
+
+    }
+
     const IBAN_STYLE = {
         base: {
             color: "#4651ee",
-            fontSize: "14px",
+            fontSize: "25px",
             "::placeholder": {
                 color: "#707070",
             },
@@ -137,14 +149,41 @@ const SepaCheckoutForm = (props: IProps) => {
         style: IBAN_STYLE,
     };
 
+    const addressOptions: StripeAddressElementOptions = {
+        mode: "billing"
+    }
+
 
     return (
         <>
             <Form onSubmit={onSubmitHandler}>
-                <Form.Label>Namn</Form.Label>
-                <Form.Control type="text" placeholder="Ange namn"></Form.Control>
+
                 <Form.Label>Email</Form.Label>
-                <Form.Control type="email" placeholder="Ange email"></Form.Control>
+                <Form.Control type="email" placeholder="Email" onChange={(event) => setBillingDetails({ ...billingDetails, email: event.target.value })}></Form.Control>
+
+                <Form.Label>Name</Form.Label>
+                <Form.Control type="text" placeholder="för och efternamn" onChange={(event) => setBillingDetails({ ...billingDetails, name: event.target.value })}></Form.Control>
+
+                <Form.Label>EU Länder</Form.Label>
+                <DropdownButton
+                    id="dropdown-button-dark-example2"
+                    variant="secondary"
+                    menuVariant="dark"
+                    title="Dropdown button"
+                    className="mt-2"
+                >
+                    <Dropdown.Item>SE</Dropdown.Item>
+                    <Dropdown.Item>DK</Dropdown.Item>
+
+                </DropdownButton>
+
+                <Form.Label>Name</Form.Label>
+                <Form.Control type="tel" placeholder="Tel" onChange={(event) => setBillingDetails({ ...billingDetails, phone: event.target.value })}></Form.Control>
+
+                {/* <AddressElement options={addressOptions} onChange={(event: StripeAddressElementChangeEvent) => {
+                    const { value: { address } } = event
+                    setAddress(address)
+                }} /> */}
 
                 <IbanElement options={IBAN_ELEMENT_OPTIONS} />
                 <Button type="submit" disabled={isLoading || !stripe || !elements}>Betala</Button>
