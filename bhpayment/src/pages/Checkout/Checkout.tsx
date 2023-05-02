@@ -16,26 +16,48 @@ const stripePromise = loadStripe(config.STRIPE_PUBLIC_API_TEST_KEY)
 const paymentMethodsList: IPaymentMethod[] = [
     {
         paymentName: "card",
+        displayName: "Kort",
         paymentMethod: "card",
-        currency: "sek"
+        currency: "sek",
     },
     {
         paymentName: "sepa",
+        displayName: "SEPA",
         paymentMethod: "sepa_debit",
         currency: "eur"
     },
     {
         paymentName: "pay",
+        displayName: "Google Apple Link Pay",
         paymentMethod: "card",
         currency: "sek"
     }
+];
+
+const dropdownMethodGroup = [
+    {
+        name: "europe",
+        displayName: "Europa",
+        paymentMethods: ["card", "sepa", "pay"],
+    },
+    {
+        name: "world",
+        displayName: "Världen",
+        paymentMethods: ["card", "pay"]
+    },
 ]
 
 
 export default function Checkout() {
     const [clientSecret, setClientSecret] = useState("")
-    const [paymentMethod, setPaymentMethod] = useState<IPaymentMethod>()
+    const [paymentMethod, setPaymentMethod] = useState<IPaymentMethod | null>()
     const [productId, setProductId] = useState<string>("price_1Mytk6HKeMBcSTk8eYnieGRt")
+    const [dropdownValue, setDropdownValue] = useState<string>("")
+
+    useEffect(() => {
+        setDropdownValue("europe")
+
+    }, [])
 
     useEffect(() => {
         // Skapa PaymentIntent object 
@@ -74,31 +96,66 @@ export default function Checkout() {
         appearance: { theme: 'stripe' },
     };
 
+
+    const containsMethodGroup = (name: string) => {
+        const method = dropdownMethodGroup.find(method => method.name === dropdownValue)
+        if (method) {
+            return method.paymentMethods.some(method => method === name)
+        }
+    }
+
+    const displayPaymentMethods = () => {
+
+        const paymentMethodGroup = dropdownMethodGroup.find(method => method.name === dropdownValue)
+
+        let buttons;
+
+        if (paymentMethodGroup) {
+            const methods = paymentMethodsList.filter(paymentMethod => paymentMethodGroup.paymentMethods.some(method => paymentMethod.paymentName === method))
+            console.log(methods)
+
+            buttons = methods.map(method => <Button onClick={methodPaymentButtonHandler} value={method.paymentName}>{method.displayName}</Button>)
+        }
+
+        return (
+            <div>
+                {buttons}
+
+            </div>
+        )
+    }
+
+    console.log("dropdownValue: ", dropdownValue)
+
     return (
         <div>
             <h1>
                 Checkout
             </h1>
-            <DropdownButton
+            <Dropdown
                 id="dropdown-button-dark-example2"
-                variant="secondary"
-                menuVariant="dark"
                 title="Dropdown button"
                 className="mt-2"
-                onChange={(event) => console.log(event.target)}
+                onSelect={(event) => { if (event) setDropdownValue(event) }}
             >
-                <Dropdown.Item>Europa</Dropdown.Item>
-                <Dropdown.Item>Resten av världen</Dropdown.Item>
+                <Dropdown.Toggle variant="success">
+                    {dropdownValue}
+                </Dropdown.Toggle>
+                <Dropdown.Menu>
+                    {dropdownMethodGroup.map((method) => <Dropdown.Item key={method.name} eventKey={method.name}>{method.displayName}</Dropdown.Item>)}
 
-            </DropdownButton>
-            <Button onClick={methodPaymentButtonHandler} value="card">Kort</Button>
-            <Button onClick={methodPaymentButtonHandler} value="sepa">SEPA</Button>
-            <Button onClick={methodPaymentButtonHandler} value="pay">Apple Google Link pay</Button>
+                </Dropdown.Menu>
+
+            </Dropdown>
+
+            {displayPaymentMethods()}
+
+
             {clientSecret !== "" && (
                 <Elements options={options} stripe={stripePromise}>
-                    {paymentMethod?.paymentName === 'card' && <CardCheckoutForm clientSecret={clientSecret} />}
-                    {paymentMethod?.paymentName === 'sepa' && <SepaCheckoutForm clientSecret={clientSecret} />}
-                    {paymentMethod?.paymentName === 'pay' && <PayCheckoutForm clientSecret={clientSecret} />}
+                    {(paymentMethod?.paymentName === 'card' && containsMethodGroup('card')) && <CardCheckoutForm clientSecret={clientSecret} />}
+                    {(paymentMethod?.paymentName === 'sepa' && containsMethodGroup('sepa')) && <SepaCheckoutForm clientSecret={clientSecret} />}
+                    {(paymentMethod?.paymentName === 'pay' && containsMethodGroup('pay')) && <PayCheckoutForm clientSecret={clientSecret} />}
 
                 </Elements>
             )}

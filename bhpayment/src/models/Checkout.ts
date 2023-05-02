@@ -1,5 +1,6 @@
 export interface IPaymentMethod {
   paymentName: string;
+  displayName: string;
   currency: string;
   paymentMethod?: string;
 }
