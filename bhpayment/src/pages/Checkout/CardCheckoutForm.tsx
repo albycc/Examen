@@ -5,8 +5,17 @@ import Form from "react-bootstrap/Form"
 import Button from "react-bootstrap/Button"
 import { IPaymentMethod } from "../../models/Checkout";
 import { useLocation } from "react-router-dom";
+import { IBillingDetails } from "../../models/Checkout";
+import CustomerFields from "./CustomerFields";
+import Container from "react-bootstrap/Container"
+import Col from "react-bootstrap/Col"
+import Row from "react-bootstrap/Row"
+import StripeInputStyle from "./stylings/StripeInput.module.css"
+import { CardContainer } from "../../components/CardContainer";
+import { ButtonPrim } from "../../components/inputs/Buttons";
 
 const useOptions = () => {
+    console.log("use options")
     const options: StripeCardNumberElementOptions = useMemo(
         () => ({
             style: {
@@ -32,6 +41,7 @@ const useOptions = () => {
 
 interface IProps {
     clientSecret: string;
+    customer?: IBillingDetails
 }
 
 const CardCheckoutForm = (props: IProps) => {
@@ -43,10 +53,18 @@ const CardCheckoutForm = (props: IProps) => {
 
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [formInitialized, setFormInitialized] = useState<boolean>(false)
+    const [customerDetails, setCustomerDetails] = useState<IBillingDetails>();
+    const [cardDetailsComplete, setCardDetailsComplete] = useState({ card: false, cvc: false, exp: false })
 
     useEffect(() => {
         setFormInitialized(true)
     }, [])
+
+    useEffect(() => {
+        if (props.customer) setCustomerDetails(props.customer)
+
+
+    }, [props.customer])
 
     useEffect(() => {
         if (!stripe) {
@@ -107,14 +125,11 @@ const CardCheckoutForm = (props: IProps) => {
 
         const cardElement = elements.getElement(CardNumberElement)
 
-        if (cardElement !== null) {
+        if (cardElement !== null && customerDetails) {
             const { error, paymentIntent } = await stripe.confirmCardPayment(props.clientSecret, {
                 payment_method: {
                     card: cardElement,
-                    billing_details: {
-                        name: "Test Testsson",
-                        email: "testsson@testmail.com"
-                    }
+                    billing_details: customerDetails
 
                 },
 
@@ -126,30 +141,46 @@ const CardCheckoutForm = (props: IProps) => {
             else if (paymentIntent?.status === 'succeeded') {
                 setMessage('Done!')
                 setIsLoading(false)
-
-
             }
 
         }
 
     }
 
+    const disable = () => {
+
+        return !Object.values(cardDetailsComplete).every(value => value)
+    }
+
 
     return (
-        <>
-            <Form onSubmit={onSubmitHandler}>
-                <Form.Label>Namn</Form.Label>
-                <Form.Control type="text" placeholder="Ange namn"></Form.Control>
-                <Form.Label>Email</Form.Label>
-                <Form.Control type="email" placeholder="Ange email"></Form.Control>
+        <Form onSubmit={onSubmitHandler}>
 
-                {/* <PaymentElement id="payment-element" options={paymentElementOptions} /> */}
-                <CardNumberElement options={options} />
-                <CardCvcElement options={options} />
-                <CardExpiryElement options={options} />
-                <Button type="submit" disabled={isLoading || !stripe || !elements}>Betala</Button>
-            </Form>
-        </>
+            <CustomerFields sendCustomer={setCustomerDetails} />
+
+            <CardContainer>
+                <Row>
+                    <Form.Label>Kort</Form.Label>
+                    <CardNumberElement options={options} className={StripeInputStyle["card-element"]}
+                        onChange={(event => setCardDetailsComplete({ ...cardDetailsComplete, card: event.complete }))} />
+                    <Form.Label>CVC</Form.Label>
+                    <CardCvcElement options={options} className={StripeInputStyle["card-element"]}
+                        onChange={(event => setCardDetailsComplete({ ...cardDetailsComplete, cvc: event.complete }))}
+                    />
+                    <Form.Label>Utgångsdatum</Form.Label>
+                    <CardExpiryElement options={options} className={StripeInputStyle["card-element"]}
+                        onChange={(event => setCardDetailsComplete({ ...cardDetailsComplete, exp: event.complete }))}
+
+                    />
+
+                </Row>
+                <Row>
+                    <ButtonPrim type="submit" disabled={isLoading || !stripe || !elements || disable()}>Betala</ButtonPrim>
+
+                </Row>
+            </CardContainer>
+        </Form>
+
 
     )
 }

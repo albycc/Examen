@@ -3,12 +3,13 @@ export interface IPaymentMethod {
   displayName: string;
   currency: string;
   paymentMethod?: string;
+  icon?: string;
 }
 
 export interface IBillingDetails {
-  email: string | null;
-  name: string | null;
-  phone: string | null;
+  email: string;
+  name: string;
+  phone: string;
 }
 
 export interface IAddress {

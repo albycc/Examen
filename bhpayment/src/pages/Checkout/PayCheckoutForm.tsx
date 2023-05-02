@@ -2,15 +2,19 @@ import react, { useEffect, useState } from "react"
 import { PaymentRequest, StripePaymentRequestButtonElementOptions } from "@stripe/stripe-js";
 import { useStripe, useElements, PaymentRequestButtonElement } from "@stripe/react-stripe-js";
 import { ClientRequest } from "http";
+import { IBillingDetails } from "../../models/Checkout";
+import { CardContainer } from "../../components/CardContainer";
 
 interface IProps {
     clientSecret: string;
+    customer?: IBillingDetails
 }
 
 const PayCheckoutForm = (props: IProps) => {
     const stripe = useStripe();
     const elements = useElements();
     const [paymentRequest, setPaymentRequest] = useState<PaymentRequest>();
+    const [customerDetails, setCustomerDetails] = useState<IBillingDetails>();
 
     useEffect(() => {
         if (stripe) {
@@ -35,6 +39,11 @@ const PayCheckoutForm = (props: IProps) => {
 
         }
     }, [stripe])
+
+    useEffect(() => {
+        if (props.customer) setCustomerDetails(props.customer)
+
+    }, [props.customer])
 
     useEffect(() => {
         if (paymentRequest && stripe) {
@@ -88,10 +97,10 @@ const PayCheckoutForm = (props: IProps) => {
             }
         }
 
-        return <>
+        return <CardContainer>
             <PaymentRequestButtonElement options={paymentRequestOptions} />
 
-        </>
+        </CardContainer>
 
     }
     else {

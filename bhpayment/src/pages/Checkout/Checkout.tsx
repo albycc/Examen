@@ -5,11 +5,24 @@ import config from "../../config.json"
 import CardCheckoutForm from "./CardCheckoutForm";
 import SepaCheckoutForm from "./SepaCheckoutForm";
 import PayCheckoutForm from "./PayCheckoutForm";
+import Form from "react-bootstrap/Form"
 import Button from "react-bootstrap/Button"
-import Dropdown from "react-bootstrap/Dropdown"
+import Dropdown from "../../components/inputs/Dropdown"
 import DropdownButton from "react-bootstrap/DropdownButton"
-import { IPaymentMethod } from "../../models/Checkout";
+import { IBillingDetails, IPaymentMethod } from "../../models/Checkout";
 import axios from "axios";
+import CustomerFields from "./CustomerFields";
+import Container from "react-bootstrap/Container"
+import Col from "react-bootstrap/Col"
+import Row from "react-bootstrap/Row"
+import { CardContainer } from "../../components/CardContainer";
+import { HeadingL } from "../../components/text/Text";
+import { ButtonIconRound } from "./stylings/CheckoutStyles";
+import Image from "react-bootstrap/Image";
+import creditIcon from "./images/credit.svg"
+import sepaIcon from "./images/SEPA.svg"
+import payIcon from "./images/pay.png"
+import MainCenterLayout from "../../components/layouts/CenterLayout";
 
 const stripePromise = loadStripe(config.STRIPE_PUBLIC_API_TEST_KEY)
 
@@ -19,26 +32,36 @@ const paymentMethodsList: IPaymentMethod[] = [
         displayName: "Kort",
         paymentMethod: "card",
         currency: "sek",
+        icon: "credit.svg"
     },
     {
         paymentName: "sepa",
         displayName: "SEPA",
         paymentMethod: "sepa_debit",
-        currency: "eur"
+        currency: "eur",
+        icon: "SEPA.svg"
     },
     {
         paymentName: "pay",
         displayName: "Google Apple Link Pay",
         paymentMethod: "card",
-        currency: "sek"
+        currency: "sek",
+        icon: "pay.png"
     }
 ];
 
-const dropdownMethodGroup = [
+interface IDropdownMethodGroup {
+    name: string;
+    displayName: string;
+    paymentMethods: string[];
+
+}
+
+const dropdownMethodGroupList: IDropdownMethodGroup[] = [
     {
         name: "europe",
         displayName: "Europa",
-        paymentMethods: ["card", "sepa", "pay"],
+        paymentMethods: ["card", "sepa", "pay"]
     },
     {
         name: "world",
@@ -52,10 +75,12 @@ export default function Checkout() {
     const [clientSecret, setClientSecret] = useState("")
     const [paymentMethod, setPaymentMethod] = useState<IPaymentMethod | null>()
     const [productId, setProductId] = useState<string>("price_1Mytk6HKeMBcSTk8eYnieGRt")
-    const [dropdownValue, setDropdownValue] = useState<string>("")
+    // const [dropdownValue, setDropdownValue] = useState<string>("")
+    const [dropdownMethodGroup, setDropdownMethodGroup] = useState<IDropdownMethodGroup>()
+    const [customerDetails, setCustomerDetails] = useState<IBillingDetails>()
 
     useEffect(() => {
-        setDropdownValue("europe")
+        setDropdownMethodGroup(dropdownMethodGroupList[0])
 
     }, [])
 
@@ -98,23 +123,28 @@ export default function Checkout() {
 
 
     const containsMethodGroup = (name: string) => {
-        const method = dropdownMethodGroup.find(method => method.name === dropdownValue)
-        if (method) {
-            return method.paymentMethods.some(method => method === name)
-        }
+
+        if (dropdownMethodGroup)
+
+            return dropdownMethodGroup.paymentMethods.some(method => method === name)
     }
 
     const displayPaymentMethods = () => {
 
-        const paymentMethodGroup = dropdownMethodGroup.find(method => method.name === dropdownValue)
-
         let buttons;
 
-        if (paymentMethodGroup) {
-            const methods = paymentMethodsList.filter(paymentMethod => paymentMethodGroup.paymentMethods.some(method => paymentMethod.paymentName === method))
+        if (dropdownMethodGroup) {
+            const methods = paymentMethodsList.filter(paymentMethod => dropdownMethodGroup.paymentMethods.some(method => paymentMethod.paymentName === method))
             console.log(methods)
 
-            buttons = methods.map(method => <Button onClick={methodPaymentButtonHandler} value={method.paymentName}>{method.displayName}</Button>)
+            buttons = methods.map(method => (
+                <ButtonIconRound
+                    key={method.paymentName}
+                    value={method.paymentName}
+                    onClick={methodPaymentButtonHandler}
+                    style={{ backgroundImage: `url(${"./images/" + method.icon})` }}
+                />
+            ))
         }
 
         return (
@@ -125,40 +155,68 @@ export default function Checkout() {
         )
     }
 
-    console.log("dropdownValue: ", dropdownValue)
+
+    console.log("dropdownMethodGroup: ", dropdownMethodGroup)
 
     return (
-        <div>
-            <h1>
-                Checkout
-            </h1>
-            <Dropdown
-                id="dropdown-button-dark-example2"
-                title="Dropdown button"
-                className="mt-2"
-                onSelect={(event) => { if (event) setDropdownValue(event) }}
-            >
-                <Dropdown.Toggle variant="success">
-                    {dropdownValue}
-                </Dropdown.Toggle>
-                <Dropdown.Menu>
-                    {dropdownMethodGroup.map((method) => <Dropdown.Item key={method.name} eventKey={method.name}>{method.displayName}</Dropdown.Item>)}
+        <MainCenterLayout>
+            <Container>
+                <Row>
+                    <div className="justify-content-center">
 
-                </Dropdown.Menu>
+                        <HeadingL >Checkout</HeadingL>
+                    </div>
 
-            </Dropdown>
+                </Row>
 
-            {displayPaymentMethods()}
+            </Container>
 
+            <CardContainer>
+                <Row>
+                    <Dropdown
+                        id="dropdown-button-dark-example2"
+                        title="Dropdown button"
+                        className="mt-2"
+                        onSelect={(event: any) => {
+                            if (event) {
+
+                                const methodGroup = dropdownMethodGroupList.find(method => method.name === event)
+
+                                if (methodGroup) setDropdownMethodGroup(methodGroup)
+                            }
+                        }}
+                    >
+                        <Dropdown.Toggle>
+                            {dropdownMethodGroup?.displayName}
+                        </Dropdown.Toggle>
+                        <Dropdown.Menu>
+                            {dropdownMethodGroupList.map((method) => <Dropdown.Item key={method.name} eventKey={method.name}>{method.displayName}</Dropdown.Item>)}
+
+                        </Dropdown.Menu>
+
+                    </Dropdown>
+
+                </Row>
+                <Row>
+                    {displayPaymentMethods()}
+
+                </Row>
+            </CardContainer>
 
             {clientSecret !== "" && (
                 <Elements options={options} stripe={stripePromise}>
-                    {(paymentMethod?.paymentName === 'card' && containsMethodGroup('card')) && <CardCheckoutForm clientSecret={clientSecret} />}
-                    {(paymentMethod?.paymentName === 'sepa' && containsMethodGroup('sepa')) && <SepaCheckoutForm clientSecret={clientSecret} />}
-                    {(paymentMethod?.paymentName === 'pay' && containsMethodGroup('pay')) && <PayCheckoutForm clientSecret={clientSecret} />}
+                    {(paymentMethod?.paymentName === 'card' && containsMethodGroup('card')) &&
+                        <CardCheckoutForm clientSecret={clientSecret} />}
+                    {(paymentMethod?.paymentName === 'sepa' && containsMethodGroup('sepa')) &&
+                        <SepaCheckoutForm clientSecret={clientSecret} />}
+                    {(paymentMethod?.paymentName === 'pay' && containsMethodGroup('pay')) &&
+                        <PayCheckoutForm clientSecret={clientSecret} />}
 
                 </Elements>
             )}
-        </div>
+
+
+
+        </MainCenterLayout>
     )
 }

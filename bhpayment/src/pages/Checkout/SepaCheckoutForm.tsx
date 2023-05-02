@@ -18,29 +18,63 @@ import { IAddress, IBillingDetails, IPaymentMethod } from "../../models/Checkout
 import { useLocation } from "react-router-dom";
 import DropdownButton from "react-bootstrap/DropdownButton";
 import Dropdown from "react-bootstrap/Dropdown"
+import euroCountries from "../../constants/euroCountries";
+import Container from "react-bootstrap/Container";
+import Row from "react-bootstrap/Row"
+import CustomerFields from "./CustomerFields";
+import StripeInputStyle from "./stylings/StripeInput.module.css"
+import { CardContainer } from "../../components/CardContainer";
 
 interface IProps {
     clientSecret: string;
+    customer?: IBillingDetails
 }
+
+const useOptions = (countryCode: string) => {
+    console.log("use options: ", countryCode)
+    const options: StripeIbanElementOptions = useMemo(
+        () => ({
+            supportedCountries: ["SEPA"],
+            placeholderCountry: countryCode,
+            style: {
+                base: {
+
+                    fontSize: "25px",
+                    color: "#424770",
+                    letterSpacing: "0.025em",
+                    fontFamily: "Roboto, Source Code Pro, monospace, SFUIDisplay",
+                    "::placeholder": {
+                        color: "#aab7c4"
+                    }
+                },
+                invalid: {
+                    color: "#9e2146"
+                },
+
+            }
+        }), [countryCode]
+    );
+
+    console.log("options: ", options)
+
+    return options;
+};
 
 const SepaCheckoutForm = (props: IProps) => {
     const stripe = useStripe();
     const elements = useElements();
 
     const [message, setMessage] = useState<string>("");
-
     const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [customerDetails, setCustomerDetails] = useState<IBillingDetails>();
+    const [countryCode, setCountryCode] = useState<string>("SE")
+    const options = useOptions(countryCode);
+    const [countryValue, setCountryValue] = useState()
 
-    const [email, setEmail] = useState<string>()
-    const [billingDetails, setBillingDetails] = useState<IBillingDetails>({
+    useEffect(() => {
+        if (props.customer) setCustomerDetails(props.customer)
 
-        email: null,
-        name: null,
-        phone: null
-    })
-
-
-    console.log("billingDetails: ", billingDetails)
+    }, [props.customer])
 
 
     useEffect(() => {
@@ -90,16 +124,11 @@ const SepaCheckoutForm = (props: IProps) => {
 
         console.log("ibanElement: ", ibanElement)
 
-        if (ibanElement !== null) {
+        if (ibanElement !== null && customerDetails) {
             const { error, paymentIntent } = await stripe.confirmSepaDebitPayment(props.clientSecret, {
                 payment_method: {
                     sepa_debit: ibanElement,
-                    billing_details: {
-                        name: billingDetails.name || "",
-                        email: billingDetails.email || "",
-                        phone: billingDetails.phone || ""
-
-                    }
+                    billing_details: customerDetails
                 }
 
             });
@@ -119,76 +148,36 @@ const SepaCheckoutForm = (props: IProps) => {
 
     }
 
-    const addressChangeHandler = () => {
-
-    }
-
-    const IBAN_STYLE = {
-        base: {
-            color: "#4651ee",
-            fontSize: "25px",
-            "::placeholder": {
-                color: "#707070",
-            },
-            ":-webkit-autofill": {
-                color: "#707070",
-            },
-        },
-        invalid: {
-            color: "#fa755a",
-            iconColor: "#fa755a",
-            ":-webkit-autofill": {
-                color: "#fa755a",
-            },
-        },
-    };
-
-    const IBAN_ELEMENT_OPTIONS: StripeIbanElementOptions = {
-        supportedCountries: ["SEPA"],
-        placeholderCountry: "SE",
-        style: IBAN_STYLE,
-    };
-
-    const addressOptions: StripeAddressElementOptions = {
-        mode: "billing"
-    }
-
-
     return (
-        <>
-            <Form onSubmit={onSubmitHandler}>
+        <Form onSubmit={onSubmitHandler}>
 
-                <Form.Label>Email</Form.Label>
-                <Form.Control type="email" placeholder="Email" onChange={(event) => setBillingDetails({ ...billingDetails, email: event.target.value })}></Form.Control>
+            {/* <AddressElement options={addressOptions} onChange={(event: StripeAddressElementChangeEvent) => {
+                const { value: { address } } = event
+                setAddress(address)
+            }} /> */}
+            <CustomerFields sendCustomer={setCustomerDetails} />
+            <CardContainer>
+                <Row>
+                    <Form.Group>
+                        <Form.Label>EU Länder</Form.Label>
+                        <Form.Select onChange={(event) => setCountryCode(event.target.value)} value={countryCode}>
 
-                <Form.Label>Name</Form.Label>
-                <Form.Control type="text" placeholder="för och efternamn" onChange={(event) => setBillingDetails({ ...billingDetails, name: event.target.value })}></Form.Control>
+                            {euroCountries.map(option => <option key={option.value} value={option.value}>{option.name}</option>)}
+                        </Form.Select>
 
-                <Form.Label>EU Länder</Form.Label>
-                <DropdownButton
-                    id="dropdown-button-dark-example2"
-                    variant="secondary"
-                    menuVariant="dark"
-                    title="Dropdown button"
-                    className="mt-2"
-                >
-                    <Dropdown.Item>SE</Dropdown.Item>
-                    <Dropdown.Item>DK</Dropdown.Item>
+                    </Form.Group>
+                    <IbanElement options={options} className={StripeInputStyle["card-element"]} />
 
-                </DropdownButton>
 
-                <Form.Label>Name</Form.Label>
-                <Form.Control type="tel" placeholder="Tel" onChange={(event) => setBillingDetails({ ...billingDetails, phone: event.target.value })}></Form.Control>
+                </Row>
+                <Row>
+                    <Button type="submit" disabled={isLoading || !stripe || !elements} >Betala</Button>
 
-                {/* <AddressElement options={addressOptions} onChange={(event: StripeAddressElementChangeEvent) => {
-                    const { value: { address } } = event
-                    setAddress(address)
-                }} /> */}
+                </Row>
 
-                <IbanElement options={IBAN_ELEMENT_OPTIONS} />
-                <Button type="submit" disabled={isLoading || !stripe || !elements}>Betala</Button>
-            </Form>
-        </>
+            </CardContainer>
+
+        </Form>
 
     )
 }
