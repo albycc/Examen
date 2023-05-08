@@ -3,14 +3,16 @@ import Container from "react-bootstrap/Container"
 import Col from "react-bootstrap/Col"
 import Row from "react-bootstrap/Row"
 import Form from "react-bootstrap/Form"
-import { IBillingDetails } from "../../models/Checkout"
+import { IBillingDetails } from "../../models/ICheckout"
 import { CardContainer } from "../../components/CardContainer"
 import { ButtonPrim, ButtonPrimDisabled } from "../../components/inputs/Buttons"
 import { Button } from "../../components/inputs/Buttons"
+import FieldInput from "../../components/forms/FieldInput"
 
 interface Iprops {
     customerDetails?: IBillingDetails;
-    sendCustomer: (customerDetails: IBillingDetails) => void
+    sendCustomer: (customerDetails: IBillingDetails) => void;
+    disableFields: boolean;
 }
 
 const CustomerFields = (props: Iprops) => {
@@ -37,22 +39,31 @@ const CustomerFields = (props: Iprops) => {
     return (
         <CardContainer>
             <Row>
-                <Form.Group>
-                    <Form.Label>Namn</Form.Label>
-                    <Form.Control type="text" placeholder="Namn" onInput={(event: React.ChangeEvent<HTMLInputElement>) => setCustomerDetails({ ...customerDetails, name: event.target.value })}></Form.Control>
-                </Form.Group>
-                <Form.Group>
-                    <Form.Label>Email</Form.Label>
-                    <Form.Control type="email" placeholder="Email" onInput={(event: React.ChangeEvent<HTMLInputElement>) => setCustomerDetails({ ...customerDetails, email: event.target.value })} ></Form.Control>
-                </Form.Group>
-                <Form.Group>
-                    <Form.Label>Telefon</Form.Label>
-                    <Form.Control type="tel" placeholder="Telefon" onInput={(event: React.ChangeEvent<HTMLInputElement>) => setCustomerDetails({ ...customerDetails, phone: event.target.value })}></Form.Control>
+                <FieldInput
+                    type="text"
+                    label="Namn"
+                    placeholder="Namn"
+                    onInput={(event: React.ChangeEvent<HTMLInputElement>) => setCustomerDetails({ ...customerDetails, name: event.target.value })}
+                    disabled={props.disableFields}
+                />
+                <FieldInput
+                    type="email"
+                    label="Email"
+                    placeholder="Email"
+                    onInput={(event: React.ChangeEvent<HTMLInputElement>) => setCustomerDetails({ ...customerDetails, email: event.target.value })}
+                    disabled={props.disableFields}
+                />
+                <FieldInput
+                    type="tel"
+                    label="Tel"
+                    placeholder="Tel"
+                    onInput={(event: React.ChangeEvent<HTMLInputElement>) => setCustomerDetails({ ...customerDetails, phone: event.target.value })}
+                    disabled={props.disableFields}
+                />
 
-                </Form.Group>
             </Row>
             <Row>
-                <Button onClick={buttonHandler} disabled={buttonEnabled()}>Nästa</Button>
+                <Button type="button" onClick={buttonHandler} disabled={buttonEnabled()}>Nästa</Button>
 
 
             </Row>

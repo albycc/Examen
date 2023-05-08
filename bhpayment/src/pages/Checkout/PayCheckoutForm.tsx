@@ -2,7 +2,7 @@ import react, { useEffect, useState } from "react"
 import { PaymentRequest, StripePaymentRequestButtonElementOptions } from "@stripe/stripe-js";
 import { useStripe, useElements, PaymentRequestButtonElement } from "@stripe/react-stripe-js";
 import { ClientRequest } from "http";
-import { IBillingDetails } from "../../models/Checkout";
+import { IBillingDetails } from "../../models/ICheckout";
 import { CardContainer } from "../../components/CardContainer";
 
 interface IProps {

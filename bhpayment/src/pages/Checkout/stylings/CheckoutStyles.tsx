@@ -10,11 +10,10 @@ export const ButtonIconRound = styled.button`
 	margin:11px;
 	padding:10px;
 
-    width:100%;
-    height:100%;
-    max-width: 100px;
-    max-height: 100px;
-    background-size: "cover";
+    width: 100px;
+    height: 100px;
+    background-size: "contain";
+	background-repeat: no-repeat;
    
 
 	&.active{
@@ -23,4 +22,17 @@ export const ButtonIconRound = styled.button`
 
 	}
 
+`
+
+const FormMessage = styled.div`
+	text-align: center;
+	padding:10px;
+	margin-top: 10px;
+	margin-bottom: 10px;
+
+
+`
+
+export const FormMessageSuccess = styled(FormMessage)`
+	background-color: lightgreen;
 `

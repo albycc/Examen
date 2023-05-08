@@ -13,8 +13,8 @@ import {
     StripeAddressElementChangeEvent
 } from '@stripe/stripe-js';
 import Form from "react-bootstrap/Form"
-import Button from "react-bootstrap/Button"
-import { IAddress, IBillingDetails, IPaymentMethod } from "../../models/Checkout";
+import { Button } from "../../components/inputs/Buttons"
+import { IAddress, IBillingDetails, IPaymentMethod } from "../../models/ICheckout";
 import { useLocation } from "react-router-dom";
 import DropdownButton from "react-bootstrap/DropdownButton";
 import Dropdown from "react-bootstrap/Dropdown"
@@ -24,13 +24,14 @@ import Row from "react-bootstrap/Row"
 import CustomerFields from "./CustomerFields";
 import StripeInputStyle from "./stylings/StripeInput.module.css"
 import { CardContainer } from "../../components/CardContainer";
+import { FormMessageSuccess } from "./stylings/CheckoutStyles";
 
 interface IProps {
     clientSecret: string;
     customer?: IBillingDetails
 }
 
-const useOptions = (countryCode: string) => {
+const useOptions = (countryCode: string, disabled: boolean) => {
     console.log("use options: ", countryCode)
     const options: StripeIbanElementOptions = useMemo(
         () => ({
@@ -50,9 +51,9 @@ const useOptions = (countryCode: string) => {
                 invalid: {
                     color: "#9e2146"
                 },
-
-            }
-        }), [countryCode]
+            },
+            disabled: disabled
+        }), [countryCode, disabled]
     );
 
     console.log("options: ", options)
@@ -67,12 +68,18 @@ const SepaCheckoutForm = (props: IProps) => {
     const [message, setMessage] = useState<string>("");
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [customerDetails, setCustomerDetails] = useState<IBillingDetails>();
+    const [disableSepaForm, setDisableSepaForm] = useState<boolean>(true)
     const [countryCode, setCountryCode] = useState<string>("SE")
-    const options = useOptions(countryCode);
     const [countryValue, setCountryValue] = useState()
+    const [sepaDebitFilled, setSepaDebitFilled] = useState<boolean>(false)
+    const [paymentSuccessful, setPaymentSuccessful] = useState<boolean>(false)
+    const options = useOptions(countryCode, disableSepaForm);
 
     useEffect(() => {
-        if (props.customer) setCustomerDetails(props.customer)
+        if (props.customer) {
+            setCustomerDetails(props.customer)
+            setDisableSepaForm(false)
+        }
 
     }, [props.customer])
 
@@ -111,6 +118,11 @@ const SepaCheckoutForm = (props: IProps) => {
         });
     }, [stripe]);
 
+    const sendCustomerHandler = (customerDetails: IBillingDetails) => {
+        setCustomerDetails(customerDetails)
+        setDisableSepaForm(false)
+    }
+
     const onSubmitHandler = async (e: React.FormEvent) => {
         e.preventDefault()
         if (!stripe || !elements) {
@@ -142,6 +154,7 @@ const SepaCheckoutForm = (props: IProps) => {
             else if (paymentIntent?.status === 'succeeded' || paymentIntent?.status === 'processing') {
                 setMessage('Done!')
                 setIsLoading(false)
+                setPaymentSuccessful(true)
             }
 
         }
@@ -155,30 +168,29 @@ const SepaCheckoutForm = (props: IProps) => {
                 const { value: { address } } = event
                 setAddress(address)
             }} /> */}
-            <CustomerFields sendCustomer={setCustomerDetails} />
+            <CustomerFields sendCustomer={sendCustomerHandler} disableFields={isLoading} />
             <CardContainer>
                 <Row>
                     <Form.Group>
                         <Form.Label>EU Länder</Form.Label>
-                        <Form.Select onChange={(event) => setCountryCode(event.target.value)} value={countryCode}>
+                        <Form.Select onChange={(event) => setCountryCode(event.target.value)} value={countryCode} disabled={disableSepaForm}>
 
                             {euroCountries.map(option => <option key={option.value} value={option.value}>{option.name}</option>)}
                         </Form.Select>
 
                     </Form.Group>
-                    <IbanElement options={options} className={StripeInputStyle["card-element"]} />
-
+                    <IbanElement options={options} className={StripeInputStyle["card-element"]} onChange={(event) => setSepaDebitFilled(event.complete)} />
 
                 </Row>
                 <Row>
-                    <Button type="submit" disabled={isLoading || !stripe || !elements} >Betala</Button>
-
+                    {paymentSuccessful ?
+                        <FormMessageSuccess>Betald!</FormMessageSuccess>
+                        :
+                        <Button type="submit" disabled={isLoading || !stripe || !elements || !sepaDebitFilled} >Betala</Button>
+                    }
                 </Row>
-
             </CardContainer>
-
         </Form>
-
     )
 }
 

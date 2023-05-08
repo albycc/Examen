@@ -1,11 +1,10 @@
-import react, { useState, useEffect, useMemo } from "react"
+import React, { useState, useEffect, useMemo } from "react"
 import { PaymentElement, useStripe, useElements, CardNumberElement, CardExpiryElement, CardCvcElement } from "@stripe/react-stripe-js";
 import { StripePaymentElementOptions, StripeCardNumberElementOptions } from '@stripe/stripe-js';
 import Form from "react-bootstrap/Form"
-import Button from "react-bootstrap/Button"
-import { IPaymentMethod } from "../../models/Checkout";
+import { IPaymentMethod } from "../../models/ICheckout";
 import { useLocation } from "react-router-dom";
-import { IBillingDetails } from "../../models/Checkout";
+import { IBillingDetails } from "../../models/ICheckout";
 import CustomerFields from "./CustomerFields";
 import Container from "react-bootstrap/Container"
 import Col from "react-bootstrap/Col"
@@ -13,8 +12,11 @@ import Row from "react-bootstrap/Row"
 import StripeInputStyle from "./stylings/StripeInput.module.css"
 import { CardContainer } from "../../components/CardContainer";
 import { ButtonPrim } from "../../components/inputs/Buttons";
+import { Button } from "../../components/inputs/Buttons";
+import { P } from "../../components/text/Text";
+import { FormMessageSuccess } from "./stylings/CheckoutStyles";
 
-const useOptions = () => {
+const useOptions = (disabled: boolean) => {
     console.log("use options")
     const options: StripeCardNumberElementOptions = useMemo(
         () => ({
@@ -32,8 +34,10 @@ const useOptions = () => {
                     color: "#9e2146"
                 },
 
-            }
-        }), []
+            },
+            disabled: disabled
+
+        }), [disabled]
     );
 
     return options;
@@ -47,24 +51,34 @@ interface IProps {
 const CardCheckoutForm = (props: IProps) => {
     const stripe = useStripe();
     const elements = useElements();
-    const options = useOptions();
 
     const [message, setMessage] = useState<string>("");
 
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [formInitialized, setFormInitialized] = useState<boolean>(false)
     const [customerDetails, setCustomerDetails] = useState<IBillingDetails>();
+    const [disableCardForm, setDisableCardForm] = useState<boolean>(true)
     const [cardDetailsComplete, setCardDetailsComplete] = useState({ card: false, cvc: false, exp: false })
+    const [cardHolder, setCardHolder] = useState<string>()
+    const [paymentSuccessful, setPaymentSuccessful] = useState<boolean>(false)
+    const options = useOptions(disableCardForm);
 
     useEffect(() => {
         setFormInitialized(true)
     }, [])
 
     useEffect(() => {
-        if (props.customer) setCustomerDetails(props.customer)
-
+        if (props.customer) {
+            setCustomerDetails(props.customer)
+            setDisableCardForm(false)
+        }
 
     }, [props.customer])
+
+    const sendCustomerHandler = (customerDetails: IBillingDetails) => {
+        setCustomerDetails(customerDetails)
+        setDisableCardForm(false)
+    }
 
     useEffect(() => {
         if (!stripe) {
@@ -123,6 +137,8 @@ const CardCheckoutForm = (props: IProps) => {
 
         setIsLoading(true);
 
+        console.log("processing card payment")
+
         const cardElement = elements.getElement(CardNumberElement)
 
         if (cardElement !== null && customerDetails) {
@@ -135,12 +151,15 @@ const CardCheckoutForm = (props: IProps) => {
 
             });
 
+            console.log("paymentIntent: ", paymentIntent)
+
             if (error && error.message) {
                 setMessage(error.message)
+                console.error(error.message)
             }
             else if (paymentIntent?.status === 'succeeded') {
                 setMessage('Done!')
-                setIsLoading(false)
+                setPaymentSuccessful(true)
             }
 
         }
@@ -152,32 +171,50 @@ const CardCheckoutForm = (props: IProps) => {
         return !Object.values(cardDetailsComplete).every(value => value)
     }
 
+    console.log("isLoading: ", isLoading)
+    console.log("stripe: ", stripe)
+    console.log("elements: ", elements)
+    console.log("disable: ", disable())
+    console.log("disableCardForm: ", disableCardForm)
+
 
     return (
         <Form onSubmit={onSubmitHandler}>
 
-            <CustomerFields sendCustomer={setCustomerDetails} />
+            <CustomerFields sendCustomer={sendCustomerHandler} disableFields={isLoading} />
 
             <CardContainer>
                 <Row>
                     <Form.Label>Kort</Form.Label>
-                    <CardNumberElement options={options} className={StripeInputStyle["card-element"]}
-                        onChange={(event => setCardDetailsComplete({ ...cardDetailsComplete, card: event.complete }))} />
+                    <CardNumberElement
+                        options={options}
+                        className={StripeInputStyle["card-element"]}
+                        onChange={(event => setCardDetailsComplete({ ...cardDetailsComplete, card: event.complete }))}
+                    />
                     <Form.Label>CVC</Form.Label>
-                    <CardCvcElement options={options} className={StripeInputStyle["card-element"]}
+                    <CardCvcElement
+                        options={options}
+                        className={StripeInputStyle["card-element"]}
                         onChange={(event => setCardDetailsComplete({ ...cardDetailsComplete, cvc: event.complete }))}
                     />
                     <Form.Label>Utgångsdatum</Form.Label>
-                    <CardExpiryElement options={options} className={StripeInputStyle["card-element"]}
+                    <CardExpiryElement
+                        options={options}
+                        className={StripeInputStyle["card-element"]}
                         onChange={(event => setCardDetailsComplete({ ...cardDetailsComplete, exp: event.complete }))}
-
                     />
 
                 </Row>
                 <Row>
-                    <ButtonPrim type="submit" disabled={isLoading || !stripe || !elements || disable()}>Betala</ButtonPrim>
+                    {paymentSuccessful ?
+                        <FormMessageSuccess>Betald!</FormMessageSuccess>
+
+                        :
+                        <Button type="submit" disabled={isLoading || !stripe || !elements || disable()}>Betala</Button>
+                    }
 
                 </Row>
+
             </CardContainer>
         </Form>
 
