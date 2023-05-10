@@ -69,7 +69,7 @@ const SepaCheckoutForm = (props: IProps) => {
     const [message, setMessage] = useState<string>("");
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [customerDetails, setCustomerDetails] = useState<IBillingDetails>();
-    const [disableSepaForm, setDisableSepaForm] = useState<boolean>(true)
+    const [disableSepaForm, setDisableSepaForm] = useState<boolean>(false)
     const [countryCode, setCountryCode] = useState<string>("SE")
     const [countryValue, setCountryValue] = useState()
     const [sepaDebitFilled, setSepaDebitFilled] = useState<boolean>(false)
@@ -79,7 +79,6 @@ const SepaCheckoutForm = (props: IProps) => {
     useEffect(() => {
         if (props.customer) {
             setCustomerDetails(props.customer)
-            setDisableSepaForm(false)
         }
 
     }, [props.customer])
@@ -132,6 +131,7 @@ const SepaCheckoutForm = (props: IProps) => {
         }
 
         setIsLoading(true);
+        setDisableSepaForm(true)
 
         const ibanElement = elements.getElement(IbanElement)
 
@@ -170,7 +170,6 @@ const SepaCheckoutForm = (props: IProps) => {
                 const { value: { address } } = event
                 setAddress(address)
             }} /> */}
-            <CustomerFields sendCustomer={sendCustomerHandler} disableFields={isLoading} />
             <CardContainer>
                 <Row>
                     <Form.Group>

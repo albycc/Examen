@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 import Container from "react-bootstrap/Container"
 import Col from "react-bootstrap/Col"
 import Row from "react-bootstrap/Row"
@@ -12,7 +12,7 @@ import FieldInput from "../../components/forms/FieldInput"
 interface Iprops {
     customerDetails?: IBillingDetails;
     sendCustomer: (customerDetails: IBillingDetails) => void;
-    disableFields: boolean;
+    disableFields?: boolean;
 }
 
 const CustomerFields = (props: Iprops) => {
@@ -20,18 +20,27 @@ const CustomerFields = (props: Iprops) => {
     const [customerDetails, setCustomerDetails] = useState<IBillingDetails>(
         {
             email: "",
-            name: "",
-            phone: ""
+            name: ""
         })
+    const [disableForm, setDisableForm] = useState<boolean>(false)
 
-    const buttonEnabled = () => {
+    useEffect(() => {
+        if (props.disableFields) {
+            setDisableForm(props.disableFields)
 
-        return !Object.values(customerDetails).every(value => value.length > 0)
-    }
+        }
+
+    }, [props.disableFields])
 
     const buttonHandler = () => {
         props.sendCustomer(customerDetails)
+        setDisableForm(true)
 
+    }
+
+    const disable = () => {
+
+        return !Object.values(customerDetails).every(value => value)
     }
 
     console.log(customerDetails)
@@ -44,26 +53,22 @@ const CustomerFields = (props: Iprops) => {
                     label="Namn"
                     placeholder="Namn"
                     onInput={(event: React.ChangeEvent<HTMLInputElement>) => setCustomerDetails({ ...customerDetails, name: event.target.value })}
-                    disabled={props.disableFields}
+                    disabled={disableForm}
                 />
                 <FieldInput
                     type="email"
                     label="Email"
                     placeholder="Email"
                     onInput={(event: React.ChangeEvent<HTMLInputElement>) => setCustomerDetails({ ...customerDetails, email: event.target.value })}
-                    disabled={props.disableFields}
-                />
-                <FieldInput
-                    type="tel"
-                    label="Tel"
-                    placeholder="Tel"
-                    onInput={(event: React.ChangeEvent<HTMLInputElement>) => setCustomerDetails({ ...customerDetails, phone: event.target.value })}
-                    disabled={props.disableFields}
+                    disabled={disableForm}
                 />
 
             </Row>
             <Row>
-                <Button type="button" onClick={buttonHandler} disabled={buttonEnabled()}>Nästa</Button>
+                <Col className="mt-3 d-flex justify-content-end">
+                    <Button type="button" onClick={buttonHandler} disabled={disable() || disableForm}>Nästa</Button>
+
+                </Col>
 
 
             </Row>

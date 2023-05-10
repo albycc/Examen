@@ -5,6 +5,7 @@ import styled from "styled-components"
 //Used for main headings
 interface IHeadingProps {
 	marginBottom?: string;
+	align?: "start" | "end" | "left" | "right" | "center" | "justify" | "match-parent";
 }
 
 export const HeadingL = styled.h1`
@@ -14,6 +15,7 @@ export const HeadingL = styled.h1`
 	font-size: 24px;
 	margin-bottom: ${(props: IHeadingProps) => props.marginBottom || "10px"};
 	color: ${theme.light.primColors.darkVioletRed};
+	text-align: ${(props: IHeadingProps) => props.align || "start"};
 `;
 
 export const HeadingM = styled.h2`

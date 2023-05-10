@@ -91,6 +91,7 @@ export default function Checkout() {
     console.log("user: ", user)
     console.log("product: ", product)
     console.log("productDetails: ", productDetails)
+    console.log("customerDetails: ", customerDetails)
 
     useEffect(() => {
         setDropdownMethodGroup(dropdownMethodGroupList[0])
@@ -123,7 +124,9 @@ export default function Checkout() {
                 currency: paymentMethod.currency,
                 priceId: productDetails?.price.id,
                 paymentMethod: paymentMethod.paymentMethod,
-                type: productDetails?.price.type
+                type: productDetails?.price.type,
+                email: customerDetails?.email,
+                description: productDetails?.product.name
             }
             if (clientSecret) {
                 console.log("checkout put: ", payload)
@@ -163,6 +166,10 @@ export default function Checkout() {
             console.log("methodPaymentButtonHandler ", method)
             setPaymentMethod(method)
         }
+    }
+
+    const sendCustomerHandler = (customerDetails: IBillingDetails) => {
+        setCustomerDetails(customerDetails);
     }
 
 
@@ -234,16 +241,21 @@ export default function Checkout() {
 
             </Container>
 
-            {productDetails ? <CardContainer>
-                <HeadingM>{productDetails.product.name}</HeadingM>
-                <P>
-                    {productDetails.price.unit_amount / 100}
-                    {" kr"}
-                </P>
-                <P className="mt-2">{productDetails.product.description}</P>
-            </CardContainer> : null}
+            {productDetails ?
+                <CardContainer>
+                    <HeadingM>{productDetails.product.name}</HeadingM>
+                    <P>
+                        {productDetails.price.unit_amount / 100}
+                        {" kr"}
+                    </P>
+                    <P className="mt-2">{productDetails.product.description}</P>
+                </CardContainer>
+                : null
+            }
 
-            <CardContainer>
+            <CustomerFields sendCustomer={sendCustomerHandler} />
+
+            {customerDetails ? <CardContainer>
                 <Row>
                     <Dropdown
                         id="dropdown-button-dark-example2"
@@ -263,17 +275,13 @@ export default function Checkout() {
                         </Dropdown.Toggle>
                         <Dropdown.Menu>
                             {dropdownMethodGroupList.map((method) => <Dropdown.Item key={method.name} eventKey={method.name}>{method.displayName}</Dropdown.Item>)}
-
                         </Dropdown.Menu>
-
                     </Dropdown>
-
                 </Row>
                 <Row>
                     {displayPaymentMethods()}
-
                 </Row>
-            </CardContainer>
+            </CardContainer> : null}
 
             {clientSecret !== "" && (
                 <Elements options={options} stripe={stripePromise}>
@@ -281,11 +289,19 @@ export default function Checkout() {
                         <CardCheckoutForm
                             clientSecret={clientSecret}
                             paymentSuccess={paymentSuccess}
+                            customer={customerDetails}
                         />}
                     {(paymentMethod?.paymentName === 'sepa' && containsMethodGroup('sepa')) &&
-                        <SepaCheckoutForm clientSecret={clientSecret} paymentSuccess={paymentSuccess} />}
+                        <SepaCheckoutForm
+                            clientSecret={clientSecret}
+                            paymentSuccess={paymentSuccess}
+                            customer={customerDetails}
+                        />}
                     {(paymentMethod?.paymentName === 'pay' && containsMethodGroup('pay')) &&
-                        <PayCheckoutForm clientSecret={clientSecret} paymentSuccess={paymentSuccess} />}
+                        <PayCheckoutForm
+                            clientSecret={clientSecret}
+                            paymentSuccess={paymentSuccess}
+                        />}
 
                 </Elements>
             )}

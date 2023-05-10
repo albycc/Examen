@@ -10,6 +10,7 @@ interface IRequestBodyCreatePaymentIntent {
   paymentMethod: string;
   type: string;
   email: string;
+  description: string;
 }
 
 paymentRoute.post("/create-payment-intent", async (req, res) => {
@@ -19,12 +20,15 @@ paymentRoute.post("/create-payment-intent", async (req, res) => {
       priceId,
       paymentMethod,
       type,
+      email,
+      description,
     }: IRequestBodyCreatePaymentIntent = req.body;
 
     console.log("req.body: ", req.body);
 
     const customer = await stripe.customers.create({
       description: "BH customer",
+      email,
     });
     console.log("customer: ", customer);
 
@@ -34,7 +38,10 @@ paymentRoute.post("/create-payment-intent", async (req, res) => {
         items: [{ price: priceId }],
         payment_behavior: "default_incomplete",
         expand: ["latest_invoice.payment_intent"],
+        description,
       });
+
+      paymentIntentId = subscription.latest_invoice.payment_intent.id;
 
       res.send({
         clientSecret: subscription.latest_invoice.payment_intent.client_secret,
@@ -57,6 +64,7 @@ paymentRoute.post("/create-payment-intent", async (req, res) => {
         amount: amount,
         currency: currency,
         payment_method_types: [paymentMethod],
+        description,
       });
 
       console.log("paymentIntent: ", paymentIntent);

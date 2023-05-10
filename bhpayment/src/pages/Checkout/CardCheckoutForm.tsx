@@ -58,7 +58,7 @@ const CardCheckoutForm = (props: IProps) => {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [formInitialized, setFormInitialized] = useState<boolean>(false)
     const [customerDetails, setCustomerDetails] = useState<IBillingDetails>();
-    const [disableCardForm, setDisableCardForm] = useState<boolean>(true)
+    const [disableCardForm, setDisableCardForm] = useState<boolean>(false)
     const [cardDetailsComplete, setCardDetailsComplete] = useState({ card: false, cvc: false, exp: false })
     const [cardHolder, setCardHolder] = useState<string>()
     const [paymentSuccessful, setPaymentSuccessful] = useState<boolean>(false)
@@ -71,7 +71,6 @@ const CardCheckoutForm = (props: IProps) => {
     useEffect(() => {
         if (props.customer) {
             setCustomerDetails(props.customer)
-            setDisableCardForm(false)
         }
 
     }, [props.customer])
@@ -137,6 +136,7 @@ const CardCheckoutForm = (props: IProps) => {
         }
 
         setIsLoading(true);
+        setDisableCardForm(true)
 
         console.log("processing card payment")
 
@@ -182,8 +182,6 @@ const CardCheckoutForm = (props: IProps) => {
 
     return (
         <Form onSubmit={onSubmitHandler}>
-
-            <CustomerFields sendCustomer={sendCustomerHandler} disableFields={isLoading} />
 
             <CardContainer>
                 <Row>

@@ -1,4 +1,3 @@
-import Button from "react-bootstrap/Button";
 import { Link, useParams } from "react-router-dom"
 import TwoColumnLayout from "../../components/layouts/TwoColumnLayout";
 import Container from "react-bootstrap/Container";
@@ -14,6 +13,9 @@ import { useContext, useEffect, useState } from "react";
 import { userService } from "../../service/userService";
 import { UserContext } from "../../context/UserContext";
 import { IUser } from "../../models/IUser";
+import DonationWindow from "./DonationWindow";
+import { Button } from "../../components/inputs/Buttons";
+import { ButtonLink } from "../../components/inputs/Links";
 
 export default function User() {
 
@@ -23,6 +25,7 @@ export default function User() {
     const { userId } = useParams()
     const { user: contextUser } = useContext(UserContext)
     const [user, setUser] = useState<IUser | null>(null)
+    const [showDonationModal, setShowDonationModal] = useState<boolean>(false)
 
     console.log("user: ", user)
 
@@ -41,95 +44,128 @@ export default function User() {
     }, [])
 
     return (
-        <TwoColumnLayout>
-            <Container fluid>
-                <Row>
-                    <Col >
-                        <HeadingL>
-                            Mitt konto
-                        </HeadingL>
-                        <Tab.Container defaultActiveKey='profile'>
-                            <NavContainer variant='tabs'>
-                                <Col className='col-auto '>
-                                    <NavItem>
-                                        <NavLink eventKey='profile'>
-                                            Profil och inloggning
-                                        </NavLink>
-                                    </NavItem>
-                                </Col>
-                                <Col className='col-auto'>
-                                    <NavItem>
-                                        <NavLink eventKey='payment'>
-                                            Medlemskap & betalningar
-                                        </NavLink>
-                                    </NavItem>
-                                </Col>
-                            </NavContainer>
-                            <Row>
-                                <Col xs={12} lg={8}>
-                                    <Tab.Content className='px-0  py-0'>
-                                        <Tab.Pane eventKey='profile'>
-                                            <CardContainer></CardContainer>
-                                            {/* <LoginType accountType={accountType} />
+        <>
+
+            <TwoColumnLayout>
+                <Container fluid>
+                    <HeadingL>
+                        {user?.name}
+                        {" "}
+                        konto
+                    </HeadingL>
+                    <Row>
+                        <Col >
+                            <Tab.Container defaultActiveKey='profile'>
+                                {userId === contextUser?.id ? <NavContainer variant='tabs'>
+                                    <Col className='col-auto '>
+                                        <NavItem>
+                                            <NavLink eventKey='profile'>
+                                                Profil och inloggning
+                                            </NavLink>
+                                        </NavItem>
+                                    </Col>
+                                    <Col className='col-auto'>
+                                        <NavItem>
+                                            <NavLink eventKey='payment'>
+                                                Medlemskap & betalningar
+                                            </NavLink>
+                                        </NavItem>
+                                    </Col>
+                                </NavContainer> : null}
+                                <Row>
+                                    <Col xs={12} lg={8}>
+                                        <Tab.Content className='px-0  py-0'>
+                                            <Tab.Pane eventKey='profile'>
+                                                <CardContainer>
+                                                    <HeadingM>Användaruppgifter</HeadingM>
+                                                    <Container fluid className="px-0">
+                                                        <Row className="my-3">
+                                                            <Col xl={2}>
+                                                                <strong>Epostadress</strong>
+                                                            </Col>
+                                                            <Col xl={10}>
+                                                                <span>{user?.email}</span>
+
+                                                            </Col>
+                                                        </Row>
+                                                        <Row>
+                                                            <Col xl={2}>
+                                                                <strong>Visningsnamn</strong>
+                                                            </Col>
+                                                            <Col xl={10}>
+                                                                <span>{user?.name}</span>
+
+                                                            </Col>
+
+                                                        </Row>
+                                                    </Container>
+
+                                                </CardContainer>
+                                                {/* <LoginType accountType={accountType} />
                                             <Profile accountType={accountType} /> */}
-                                        </Tab.Pane>
-                                        <Tab.Pane eventKey='payment'>
-                                            <Membership user={user} userParamsId={userId} />
-                                        </Tab.Pane>
+                                            </Tab.Pane>
+                                            <Tab.Pane eventKey='payment'>
+                                                <Membership user={user} userParamsId={userId} />
+                                            </Tab.Pane>
 
-                                    </Tab.Content>
+                                        </Tab.Content>
 
-                                </Col>
-                                <Col xs={12} lg={4}>
-                                    <CardContainer>
-                                        <Container className='p-0' style={{ height: "84px" }} fluid>
-                                            <Row>
-                                                <HeadingM>
-                                                    <Row>
-                                                        <Col>
-                                                            Användare skapad{" "}
-                                                            {/* <P className='mt-2'>{userCreatedAtDate}</P> */}
-                                                        </Col>
-                                                    </Row>
-                                                </HeadingM>
-                                            </Row>
-                                            <Row>
-                                                <P>date created at</P>
-                                                {/* <P>{User?.created_at?.split("T")[0]}</P> */}
-                                            </Row>
-                                        </Container>
-                                    </CardContainer>
-                                    <CardContainer>
-                                        <Container className='p-0' fluid>
-                                            <Row>
-                                                <HeadingM>
-                                                    Hjälp oss att hålla Bildhistoria levande genom donation
-                                                </HeadingM>
-                                            </Row>
-                                            <Row>
-                                                <P>
-                                                    Förutom medlemskap kan du donera pengar till vår verksamhet.{" "}
+                                    </Col>
+                                    <Col xs={12} lg={4}>
+                                        <CardContainer>
+                                            <Container className='p-0' style={{ height: "84px" }} fluid>
+                                                <Row>
+                                                    <HeadingM>
+                                                        <Row>
+                                                            <Col>
+                                                                Användare skapad{" "}
+                                                                {/* <P className='mt-2'>{userCreatedAtDate}</P> */}
+                                                            </Col>
+                                                        </Row>
+                                                    </HeadingM>
+                                                </Row>
+                                                <Row>
+                                                    <P>date created at</P>
+                                                    {/* <P>{User?.created_at?.split("T")[0]}</P> */}
+                                                </Row>
+                                            </Container>
+                                        </CardContainer>
+                                        <CardContainer>
+                                            <Container className='p-0' fluid>
+                                                <Row>
+                                                    <HeadingM>
+                                                        Hjälp oss att hålla Bildhistoria levande genom donation
+                                                    </HeadingM>
+                                                </Row>
+                                                <Row>
+                                                    <P>
+                                                        Förutom medlemskap kan du donera pengar till vår verksamhet.{" "}
 
-                                                    <Link to="/donations">Gå till donering</Link>
-                                                </P>
+                                                        <ButtonLink onClick={() => setShowDonationModal(true)}>Donera pengar</ButtonLink>
+
+                                                        {/* <Link to="/donations">Gå till donering</Link> */}
+                                                    </P>
 
 
-                                            </Row>
+                                                </Row>
 
-                                        </Container>
-                                    </CardContainer>
+                                            </Container>
+                                        </CardContainer>
 
-                                </Col>
-                            </Row>
+                                    </Col>
+                                </Row>
 
-                        </Tab.Container>
+                            </Tab.Container>
 
-                    </Col>
+                        </Col>
 
-                </Row>
+                    </Row>
 
-            </Container>
+                </Container>
 
-        </TwoColumnLayout>
+
+            </TwoColumnLayout>
+            <DonationWindow show={showDonationModal} cancel={() => setShowDonationModal(false)} />
+        </>
     )
 }

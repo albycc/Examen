@@ -15,5 +15,11 @@ export const CardContainer = styled(Container).attrs({
 	margin-top:20px;
 	margin-bottom:20px;
 
+	&:first-of-type{
+		margin-top:0;
+		position:relative;
+		top:-1px;
+	}
+
 	
 `;

@@ -19,10 +19,11 @@ exports.paymentRoute = express_1.default.Router();
 let paymentIntentId;
 exports.paymentRoute.post("/create-payment-intent", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        let { currency, priceId, paymentMethod, type, } = req.body;
+        let { currency, priceId, paymentMethod, type, email, description, } = req.body;
         console.log("req.body: ", req.body);
         const customer = yield stripeVars_1.default.customers.create({
             description: "BH customer",
+            email,
         });
         console.log("customer: ", customer);
         if (type === "recurring") {
@@ -31,7 +32,9 @@ exports.paymentRoute.post("/create-payment-intent", (req, res) => __awaiter(void
                 items: [{ price: priceId }],
                 payment_behavior: "default_incomplete",
                 expand: ["latest_invoice.payment_intent"],
+                description,
             });
+            paymentIntentId = subscription.latest_invoice.payment_intent.id;
             res.send({
                 clientSecret: subscription.latest_invoice.payment_intent.client_secret,
                 customer: customer.id,
@@ -52,6 +55,7 @@ exports.paymentRoute.post("/create-payment-intent", (req, res) => __awaiter(void
                 amount: amount,
                 currency: currency,
                 payment_method_types: [paymentMethod],
+                description,
             });
             console.log("paymentIntent: ", paymentIntent);
             paymentIntentId = paymentIntent.id;

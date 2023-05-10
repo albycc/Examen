@@ -9,7 +9,6 @@ export interface IPaymentMethod {
 export interface IBillingDetails {
   email: string;
   name: string;
-  phone: string;
 }
 
 export interface IAddress {

@@ -8,6 +8,7 @@ import { ButtonPrim } from "../../components/inputs/Buttons";
 import { Link } from "react-router-dom";
 import { products } from "../../constants/products"
 import { IUser } from "../../models/IUser";
+import { LinkButton } from "../../components/inputs/Links";
 
 
 
@@ -64,10 +65,6 @@ export default function Membership(props: Iprops) {
 						<Col>
 							<P>
 								Som medlem får du tillgång till ett antal fina premiumtjänster, tex bildsökning med ansiktsigenkänning och att hitta bilder på individer i en uppladdad GEDCOM fil.
-								<LinkStyled>
-									Läs mer.
-								</LinkStyled>.
-								{" "}
 								Betald årsavgift (eller påbörjad prenumeration) ger medlemskap till 31 december innevarande år. Om du betalar avgiften i november eller december, sträcker sig medlemsskapet till 31 dec nästkommande år.
 							</P>
 
@@ -84,25 +81,21 @@ export default function Membership(props: Iprops) {
 						</Col>
 
 					</Row>
-					{props.user && props.user.type !== "subscription" && props.user.id === props.userParamsId ? <Row className="py-3">
+					{props.user && props.user.type !== "subscription" ? <Row className="py-3">
 						<Col className="col-12">
 							<div className="d-flex ">
-								<ButtonPrim >
-									<Link to={`/checkout/${productMemberId}`}>
-										{props.user.type === 'member'
-											?
-											"Betala medlemsavgift för ytterligare ett år"
-											:
-											"Betala medlemsavgift för ett år"
+								<LinkButton to={`/checkout/${productMemberId}`} className="mx-2">
+									{props.user.type === 'member'
+										?
+										"Betala medlemsavgift för ytterligare ett år"
+										:
+										"Betala medlemsavgift för ett år"
 
-										}
-									</Link>
-								</ButtonPrim>
-								<ButtonPrim className="mx-2">
-									<Link to={`/checkout/${productSubscriptionId}`}>
-										Prenumerera (årlig debitering)
-									</Link>
-								</ButtonPrim>
+									}
+								</LinkButton>
+								<LinkButton to={`/checkout/${productSubscriptionId}`} className="mx-2">
+									Prenumerera (årlig debitering)
+								</LinkButton>
 
 							</div>
 						</Col>

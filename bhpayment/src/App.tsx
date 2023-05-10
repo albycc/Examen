@@ -9,6 +9,7 @@ import WebFont from "webfontloader"
 import NavigationBar from "./components/navbar/NavigationBar";
 import { GlobalStyle } from "./components/GlobalStyle";
 import UserContextProvider from "./context/UserContext";
+import DonationSuccess from "./pages/donation/DonationSuccess";
 
 function App() {
 
@@ -32,6 +33,7 @@ function App() {
           <Route path="login" element={<Login />} />
           <Route path="/user/:userId" element={<User />} />
           <Route path="/checkout/:id" element={<Checkout />} />
+          <Route path="/donationsuccess" element={<DonationSuccess />} />
 
         </Routes>
       </div>
