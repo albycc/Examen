@@ -1,5 +1,5 @@
 import Button from "react-bootstrap/Button";
-import { Link } from "react-router-dom"
+import { Link, useParams } from "react-router-dom"
 import TwoColumnLayout from "../../components/layouts/TwoColumnLayout";
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
@@ -10,11 +10,35 @@ import { NavContainer, NavLink } from "./stylings/UserStyles";
 import { NavItem } from "react-bootstrap";
 import Membership from "./Membership";
 import { CardContainer } from "../../components/CardContainer";
+import { useContext, useEffect, useState } from "react";
+import { userService } from "../../service/userService";
+import { UserContext } from "../../context/UserContext";
+import { IUser } from "../../models/IUser";
 
 export default function User() {
 
-    let accountType = "";
+    const [memberStatus, setMemberStatus] = useState<string>("")
 
+    let accountType = "";
+    const { userId } = useParams()
+    const { user: contextUser } = useContext(UserContext)
+    const [user, setUser] = useState<IUser | null>(null)
+
+    console.log("user: ", user)
+
+    useEffect(() => {
+
+        const exec = async () => {
+            if (userId) {
+                const data = await userService.getUserById(userId)
+                console.log("data: ", data)
+                setUser(data)
+
+            }
+        }
+        exec()
+
+    }, [])
 
     return (
         <TwoColumnLayout>
@@ -44,12 +68,13 @@ export default function User() {
                             <Row>
                                 <Col xs={12} lg={8}>
                                     <Tab.Content className='px-0  py-0'>
-                                        {/* <Tab.Pane eventKey='profile'>
-                                            <LoginType accountType={accountType} />
-                                            <Profile accountType={accountType} />
-                                        </Tab.Pane> */}
+                                        <Tab.Pane eventKey='profile'>
+                                            <CardContainer></CardContainer>
+                                            {/* <LoginType accountType={accountType} />
+                                            <Profile accountType={accountType} /> */}
+                                        </Tab.Pane>
                                         <Tab.Pane eventKey='payment'>
-                                            <Membership />
+                                            <Membership user={user} userParamsId={userId} />
                                         </Tab.Pane>
 
                                     </Tab.Content>

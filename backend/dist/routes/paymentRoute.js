@@ -19,32 +19,46 @@ exports.paymentRoute = express_1.default.Router();
 let paymentIntentId;
 exports.paymentRoute.post("/create-payment-intent", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        let { currency, priceId, paymentMethod } = req.body;
+        let { currency, priceId, paymentMethod, type, } = req.body;
         console.log("req.body: ", req.body);
         const customer = yield stripeVars_1.default.customers.create({
-            description: "test customer",
+            description: "BH customer",
         });
         console.log("customer: ", customer);
-        const invoiceItem = yield stripeVars_1.default.invoiceItems.create({
-            customer: customer.id,
-            price: priceId,
-        });
-        console.log("invoiceItem: ", invoiceItem);
-        let { amount } = invoiceItem;
-        if (currency === "eur") {
-            let euro = (amount / 100) * 0.087952246;
-            amount = (Math.round(euro * 100) / 100) * 100;
+        if (type === "recurring") {
+            const subscription = yield stripeVars_1.default.subscriptions.create({
+                customer: customer.id,
+                items: [{ price: priceId }],
+                payment_behavior: "default_incomplete",
+                expand: ["latest_invoice.payment_intent"],
+            });
+            res.send({
+                clientSecret: subscription.latest_invoice.payment_intent.client_secret,
+                customer: customer.id,
+            });
         }
-        const paymentIntent = yield stripeVars_1.default.paymentIntents.create({
-            amount: amount,
-            currency: currency,
-            payment_method_types: [paymentMethod],
-        });
-        console.log("paymentIntent: ", paymentIntent);
-        paymentIntentId = paymentIntent.id;
-        res.send({
-            clientSecret: paymentIntent.client_secret,
-        });
+        else {
+            const invoiceItem = yield stripeVars_1.default.invoiceItems.create({
+                customer: customer.id,
+                price: priceId,
+            });
+            console.log("invoiceItem: ", invoiceItem);
+            let { amount } = invoiceItem;
+            if (currency === "eur") {
+                let euro = (amount / 100) * 0.087952246;
+                amount = (Math.round(euro * 100) / 100) * 100;
+            }
+            const paymentIntent = yield stripeVars_1.default.paymentIntents.create({
+                amount: amount,
+                currency: currency,
+                payment_method_types: [paymentMethod],
+            });
+            console.log("paymentIntent: ", paymentIntent);
+            paymentIntentId = paymentIntent.id;
+            res.send({
+                clientSecret: paymentIntent.client_secret,
+            });
+        }
     }
     catch (err) {
         res.status(404).send({ error: err });

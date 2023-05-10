@@ -29,6 +29,7 @@ import { FormMessageSuccess } from "./stylings/CheckoutStyles";
 interface IProps {
     clientSecret: string;
     customer?: IBillingDetails
+    paymentSuccess: () => void;
 }
 
 const useOptions = (countryCode: string, disabled: boolean) => {
@@ -155,6 +156,7 @@ const SepaCheckoutForm = (props: IProps) => {
                 setMessage('Done!')
                 setIsLoading(false)
                 setPaymentSuccessful(true)
+                props.paymentSuccess()
             }
 
         }

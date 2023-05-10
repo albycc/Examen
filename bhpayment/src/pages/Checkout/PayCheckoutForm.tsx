@@ -7,7 +7,8 @@ import { CardContainer } from "../../components/CardContainer";
 
 interface IProps {
     clientSecret: string;
-    customer?: IBillingDetails
+    customer?: IBillingDetails;
+    paymentSuccess: (customer: IBillingDetails) => void;
 }
 
 const PayCheckoutForm = (props: IProps) => {

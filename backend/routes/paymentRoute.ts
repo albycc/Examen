@@ -8,46 +8,65 @@ interface IRequestBodyCreatePaymentIntent {
   currency: string;
   priceId: string;
   paymentMethod: string;
+  type: string;
+  email: string;
 }
 
 paymentRoute.post("/create-payment-intent", async (req, res) => {
   try {
-    let { currency, priceId, paymentMethod }: IRequestBodyCreatePaymentIntent =
-      req.body;
+    let {
+      currency,
+      priceId,
+      paymentMethod,
+      type,
+    }: IRequestBodyCreatePaymentIntent = req.body;
 
     console.log("req.body: ", req.body);
 
     const customer = await stripe.customers.create({
-      description: "test customer",
+      description: "BH customer",
     });
     console.log("customer: ", customer);
 
-    const invoiceItem = await stripe.invoiceItems.create({
-      customer: customer.id,
-      price: priceId,
-    });
-    console.log("invoiceItem: ", invoiceItem);
+    if (type === "recurring") {
+      const subscription = await stripe.subscriptions.create({
+        customer: customer.id,
+        items: [{ price: priceId }],
+        payment_behavior: "default_incomplete",
+        expand: ["latest_invoice.payment_intent"],
+      });
 
-    let { amount } = invoiceItem;
+      res.send({
+        clientSecret: subscription.latest_invoice.payment_intent.client_secret,
+        customer: customer.id,
+      });
+    } else {
+      const invoiceItem = await stripe.invoiceItems.create({
+        customer: customer.id,
+        price: priceId,
+      });
+      console.log("invoiceItem: ", invoiceItem);
 
-    if (currency === "eur") {
-      let euro = (amount / 100) * 0.087952246;
-      amount = (Math.round(euro * 100) / 100) * 100;
+      let { amount } = invoiceItem;
+
+      if (currency === "eur") {
+        let euro = (amount / 100) * 0.087952246;
+        amount = (Math.round(euro * 100) / 100) * 100;
+      }
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount,
+        currency: currency,
+        payment_method_types: [paymentMethod],
+      });
+
+      console.log("paymentIntent: ", paymentIntent);
+
+      paymentIntentId = paymentIntent.id;
+
+      res.send({
+        clientSecret: paymentIntent.client_secret,
+      });
     }
-
-    const paymentIntent = await stripe.paymentIntents.create({
-      amount: amount,
-      currency: currency,
-      payment_method_types: [paymentMethod],
-    });
-
-    console.log("paymentIntent: ", paymentIntent);
-
-    paymentIntentId = paymentIntent.id;
-
-    res.send({
-      clientSecret: paymentIntent.client_secret,
-    });
   } catch (err) {
     res.status(404).send({ error: err });
   }

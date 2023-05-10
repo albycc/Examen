@@ -45,7 +45,8 @@ const useOptions = (disabled: boolean) => {
 
 interface IProps {
     clientSecret: string;
-    customer?: IBillingDetails
+    customer?: IBillingDetails;
+    paymentSuccess: () => void;
 }
 
 const CardCheckoutForm = (props: IProps) => {
@@ -159,6 +160,7 @@ const CardCheckoutForm = (props: IProps) => {
             }
             else if (paymentIntent?.status === 'succeeded') {
                 setMessage('Done!')
+                props.paymentSuccess()
                 setPaymentSuccessful(true)
             }
 

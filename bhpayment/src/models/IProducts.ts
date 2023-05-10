@@ -1,7 +1,14 @@
+import { IMemberSuccess } from "./IService";
+
 export interface IProduct {
   id: string;
   priceId: string;
-  paymentSuccessBehaviour?: () => void;
+  type: string;
+  paymentSuccessBehaviour?: (
+    email: string,
+    type: string
+  ) => Promise<IMemberSuccess>;
+  paymentSuccessUrl?: string;
 }
 
 export interface IProductDetails {
@@ -16,5 +23,6 @@ export interface IProductDetails {
     currency: string;
     product: string;
     unit_amount: number;
+    type: string;
   };
 }

@@ -1,0 +1,20 @@
+[
+    {
+        "id": "253236262364636",
+        "name": "Test Testsson",
+        "email": "testsson@testmail.com",
+        "password": "ABC123",
+        "type": "subscription",
+        "dateCreated": "2023-05-10T11:22:10.274Z",
+        "dateMemberPaidExpire": "2024-05-10T12:13:11.567Z"
+    },
+    {
+        "id": "7470116953793653",
+        "name": "Bert",
+        "email": "bert@mail.com",
+        "password": "123",
+        "type": "member",
+        "dateCreated": "2023-05-10T09:22:10.274Z",
+        "dateMemberPaidExpire": "2024-05-10T12:24:53.964Z"
+    }
+]

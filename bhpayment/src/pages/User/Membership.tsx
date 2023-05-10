@@ -7,25 +7,48 @@ import { HeadingL, LinkStyled, P, Span } from "../../components/text/Text";
 import { ButtonPrim } from "../../components/inputs/Buttons";
 import { Link } from "react-router-dom";
 import { products } from "../../constants/products"
+import { IUser } from "../../models/IUser";
 
 
 
-// interface Iprops {
-// 	user: User | null;
-// }
+interface Iprops {
+	user: IUser | null;
+	userParamsId?: string
+}
 
-export default function Membership() {
+export default function Membership(props: Iprops) {
 
 	const [productMemberId, setProductMemberId] = useState<string>()
 	const [productSubscriptionId, setProductSubscriptionId] = useState<string>()
+	const [statusText, setStatusText] = useState<string>("")
 
 	useEffect(() => {
 
 		setProductMemberId(products[0].id)
 		setProductSubscriptionId(products[1].id)
 
-	}, [])
+		if (props.user) {
+			console.log("user: ", props.user)
+			switch (props.user.type) {
+				case "user": setStatusText("Inte medlem"); break;
+				case "member":
+					if (props.user.dateMemberPaidExpire) {
+						const paidDate = props.user.dateMemberPaidExpire.toString().slice(0, 10)
+						setStatusText(`Betald medlemsavgift fram till ${(paidDate)}`);
+					}
+					break;
+				case "subscription":
+					if (props.user.dateMemberPaidExpire) {
+						const paidDate = props.user.dateMemberPaidExpire.toString().slice(0, 10)
+						setStatusText(`Prenumererar på medlemskap. Närvarande betalt fram till ${(paidDate)}`);
+					}
 
+			}
+		}
+
+	}, [props.user])
+
+	console.log("userParamsId: ", props.userParamsId)
 
 	return (
 		<>
@@ -56,26 +79,35 @@ export default function Membership() {
 							<P>
 								<Span>Medlemstatus</Span>
 								{": "}
-								<strong>Du är ännu inte meblem</strong>
+								<strong>{statusText}</strong>
 							</P>
 						</Col>
 
 					</Row>
-					<Row className="py-3">
-						<Col className="col-12 col-sm-5">
-							<ButtonPrim >
-								<Link to={`/checkout/${productMemberId}`}>Betala medlemsavgift för ett år</Link>
-							</ButtonPrim>
-						</Col>
-						<Col className="col-12 col-sm-7">
-							<ButtonPrim >
-								<Link to={`/checkout/${productSubscriptionId}`}>
-									Prenumerera (årlig debitering)
-								</Link>
-							</ButtonPrim>
+					{props.user && props.user.type !== "subscription" && props.user.id === props.userParamsId ? <Row className="py-3">
+						<Col className="col-12">
+							<div className="d-flex ">
+								<ButtonPrim >
+									<Link to={`/checkout/${productMemberId}`}>
+										{props.user.type === 'member'
+											?
+											"Betala medlemsavgift för ytterligare ett år"
+											:
+											"Betala medlemsavgift för ett år"
 
+										}
+									</Link>
+								</ButtonPrim>
+								<ButtonPrim className="mx-2">
+									<Link to={`/checkout/${productSubscriptionId}`}>
+										Prenumerera (årlig debitering)
+									</Link>
+								</ButtonPrim>
+
+							</div>
 						</Col>
-					</Row>
+
+					</Row> : null}
 				</Container>
 			</CardContainer>
 
