@@ -11,6 +11,13 @@ import { GlobalStyle } from "./components/GlobalStyle";
 import UserContextProvider from "./context/UserContext";
 import DonationSuccess from "./pages/donation/DonationSuccess";
 
+/*
+Main App file
+
+Here we load fonts, instantiate React Router and define different routers
+
+Also we see user context for storing user data globally, and also grabs global styling and setting up navigation bar
+*/
 function App() {
 
   useEffect(() => {

@@ -3,7 +3,7 @@ import stripe from "../stripe/stripeVars";
 
 export const productRoute = Express.Router();
 
-productRoute.get("/getProduct/:id", async (req: Request, res: Response) => {
+productRoute.get("/api/getProduct/:id", async (req: Request, res: Response) => {
   try {
     let { id } = req.params;
 

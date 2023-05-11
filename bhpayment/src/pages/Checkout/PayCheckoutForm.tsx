@@ -1,38 +1,60 @@
 import react, { useEffect, useState } from "react"
 import { PaymentRequest, StripePaymentRequestButtonElementOptions } from "@stripe/stripe-js";
 import { useStripe, useElements, PaymentRequestButtonElement } from "@stripe/react-stripe-js";
-import { ClientRequest } from "http";
 import { IBillingDetails } from "../../models/ICheckout";
 import { CardContainer } from "../../components/CardContainer";
+import { Container, Row } from "react-bootstrap";
+import { FormMessageError, FormMessageSuccess } from "../../components/forms/FormMessage";
+import { IProduct, IProductDetails } from "../../models/IProducts";
+
+/*
+Wallet payment form.
+
+Accepts different wallet payment forms, like Apple, Google and Link pay.
+
+Has a bit of a different approach than card and SEPA.
+
+To display correct wallet, you must ensure its compatible with the device and browser and also if you have activated the wallet.
+See more here: https://stripe.com/docs/stripe-js/elements/payment-request-button
+
+A paymentRequest is used to retrive suitable wallet options. It is used to collect payment information through an interface controlled and styled by the browser itself.
+See more here: https://stripe.com/docs/js/payment_request
+
+the make sure your customer has an active payment method enabled with paymentRequests canMakePayment(). 
+If so, render Stripes PaymentRequestButtonElement component to display different wallet options
+
+*/
 
 interface IProps {
     clientSecret: string;
     customer?: IBillingDetails;
     paymentSuccess: (customer: IBillingDetails) => void;
+    productDetails?: IProductDetails;
 }
 
 const PayCheckoutForm = (props: IProps) => {
-    const stripe = useStripe();
-    const elements = useElements();
+    const stripe = useStripe(); //keeps track of payments
+    const elements = useElements(); //manages Stripes UI components
     const [paymentRequest, setPaymentRequest] = useState<PaymentRequest>();
-    const [customerDetails, setCustomerDetails] = useState<IBillingDetails>();
+    const [errorMessage, setErrorMessage] = useState<string>("");
+    const [paymentSuccessful, setPaymentSuccessful] = useState<boolean>(false)
 
     useEffect(() => {
-        if (stripe) {
+        if (stripe && props.productDetails) {
+            //create payment
             const pr: PaymentRequest = stripe.paymentRequest({
                 country: 'SE',
                 currency: 'sek',
                 total: {
                     label: 'Demo total',
-                    amount: 12000,
+                    amount: props.productDetails.price.unit_amount,
                 },
                 requestPayerName: true,
                 requestPayerEmail: true,
             })
 
-            //Check to make sure that your customer has an active payment method using
+            //Check to make sure that your customer has an active payment method
             pr.canMakePayment().then(result => {
-                console.log("result: ", result)
                 if (result) {
                     setPaymentRequest(pr);
                 }
@@ -42,12 +64,8 @@ const PayCheckoutForm = (props: IProps) => {
     }, [stripe])
 
     useEffect(() => {
-        if (props.customer) setCustomerDetails(props.customer)
-
-    }, [props.customer])
-
-    useEffect(() => {
         if (paymentRequest && stripe) {
+            //listed for accepting payments with the paymentRequest object. Pass the clientSecret and PaymentMethod ID
             paymentRequest.on("paymentmethod", async (event) => {
                 const { paymentIntent, error } = await stripe.confirmCardPayment(
                     props.clientSecret,
@@ -57,6 +75,7 @@ const PayCheckoutForm = (props: IProps) => {
 
                 if (error) {
                     event.complete('fail')
+                    setErrorMessage("Nåt fel hände. Försök att välja annan betalmetod eller försök senare.")
                 }
                 else {
                     // Report to the browser that the confirmation was successful, prompting
@@ -71,12 +90,15 @@ const PayCheckoutForm = (props: IProps) => {
                         const { error } = await stripe.confirmCardPayment(props.clientSecret)
                         if (error) {
                             console.error(error)
+                            setErrorMessage("Nåt fel hände. Försök att välja annan betalmetod eller försök senare.")
                         }
                         else {
-                            console.log('payment succeeded!')
+                            setErrorMessage("")
+                            setPaymentSuccessful(true)
                         }
                     } else {
-                        console.log('payment succeeded!')
+                        setErrorMessage("")
+                        setPaymentSuccessful(true)
                     }
                 }
             })
@@ -99,7 +121,22 @@ const PayCheckoutForm = (props: IProps) => {
         }
 
         return <CardContainer>
-            <PaymentRequestButtonElement options={paymentRequestOptions} />
+            <Container>
+                {errorMessage ?
+                    <Row>
+                        <FormMessageError>
+                            {errorMessage}
+                        </FormMessageError>
+                    </Row> : null}
+                <Row>
+                    <PaymentRequestButtonElement options={paymentRequestOptions} />
+                </Row>
+                {paymentSuccessful ?
+                    <Row>
+                        <FormMessageSuccess>Betald!</FormMessageSuccess>
+                    </Row>
+                    : null}
+            </Container>
 
         </CardContainer>
 

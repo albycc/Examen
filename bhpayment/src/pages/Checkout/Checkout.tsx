@@ -6,87 +6,49 @@ import CardCheckoutForm from "./CardCheckoutForm";
 import SepaCheckoutForm from "./SepaCheckoutForm";
 import PayCheckoutForm from "./PayCheckoutForm";
 import Dropdown from "../../components/inputs/Dropdown"
-import { IBillingDetails, IPaymentMethod } from "../../models/ICheckout";
-import axios from "axios";
+import { IBillingDetails, IDropdownMethodGroup, IPaymentMethod } from "../../models/ICheckout";
 import CustomerFields from "./CustomerFields";
 import Container from "react-bootstrap/Container"
 import Row from "react-bootstrap/Row"
 import { CardContainer } from "../../components/CardContainer";
 import { HeadingL, HeadingM, P } from "../../components/text/Text";
 import { ButtonIconRound } from "./stylings/CheckoutStyles";
-import creditIcon from "./images/credit.svg"
-import sepaIcon from "./images/SEPA.svg"
-import payIcon from "./images/pay.png"
 import MainCenterLayout from "../../components/layouts/CenterLayout";
 import { useNavigate, useParams } from "react-router-dom";
 import { productService } from "../../service/productsService";
 import { IProduct, IProductDetails } from "../../models/IProducts";
 import { products } from "../../constants/products";
 import { UserContext } from "../../context/UserContext";
+import { paymentService } from "../../service/paymentService";
+import { paymentMethodsList } from "../../constants/checkout";
+import { dropdownMethodGroupList } from "../../constants/checkout";
 
+/*
+Checkout component used by checkout page
+
+Displays product details, user formula, payment methods and formulas for each payment method.
+
+Stripe Elements is a parent wrapper component for Stripes UI elements. You need to pass a loadStripe promise as well as options containing the clientSecret
+
+Depending on what payment method you choose, its corresponding formula will be displayed.
+
+*/
+
+//use Stripe test key
 const stripePromise = loadStripe(config.STRIPE_PUBLIC_API_TEST_KEY)
-
-const paymentMethodsList: IPaymentMethod[] = [
-    {
-        paymentName: "card",
-        displayName: "Kort",
-        paymentMethod: "card",
-        currency: "sek",
-        icon: creditIcon
-    },
-    {
-        paymentName: "sepa",
-        displayName: "SEPA",
-        paymentMethod: "sepa_debit",
-        currency: "eur",
-        icon: sepaIcon
-    },
-    {
-        paymentName: "pay",
-        displayName: "Google Apple Link Pay",
-        paymentMethod: "card",
-        currency: "sek",
-        icon: payIcon
-    }
-];
-
-interface IDropdownMethodGroup {
-    name: string;
-    displayName: string;
-    paymentMethods: string[];
-
-}
-
-const dropdownMethodGroupList: IDropdownMethodGroup[] = [
-    {
-        name: "europe",
-        displayName: "Europa",
-        paymentMethods: ["card", "sepa", "pay"]
-    },
-    {
-        name: "world",
-        displayName: "Världen",
-        paymentMethods: ["card", "pay"]
-    },
-]
 
 
 export default function Checkout() {
-    const [clientSecret, setClientSecret] = useState("")
-    const [paymentMethod, setPaymentMethod] = useState<IPaymentMethod | null>()
-    // const [dropdownValue, setDropdownValue] = useState<string>("")
-    const [dropdownMethodGroup, setDropdownMethodGroup] = useState<IDropdownMethodGroup>()
-    const [product, setProduct] = useState<IProduct>()
-    const [customerDetails, setCustomerDetails] = useState<IBillingDetails>()
-    const [productDetails, setProductDetails] = useState<IProductDetails>()
-    const { id } = useParams()
+    const [clientSecret, setClientSecret] = useState("") //self explanatory
+    const [paymentMethod, setPaymentMethod] = useState<IPaymentMethod | null>() //chosen payment method stored as object
+    const [dropdownMethodGroup, setDropdownMethodGroup] = useState<IDropdownMethodGroup>() // filtering right payment methods used depending on region
+    const [product, setProduct] = useState<IProduct>() // product from products array. A product has ids, type and behaviours after succesful pay.
+    const [customerDetails, setCustomerDetails] = useState<IBillingDetails>() // customers details like email and name
+    const [productDetails, setProductDetails] = useState<IProductDetails>() // details Stripes product and price
+    const [paymentIntentId, setPaymentIntentId] = useState<string>("")
+    const { id } = useParams() //grab products id from url
     const navigate = useNavigate()
-    const { user } = useContext(UserContext)
-
-    console.log("user: ", user)
-    console.log("product: ", product)
-    console.log("productDetails: ", productDetails)
-    console.log("customerDetails: ", customerDetails)
+    const { user } = useContext(UserContext) // see if there is a logged user. If so, fill in its details in customer fields.
 
     useEffect(() => {
         setDropdownMethodGroup(dropdownMethodGroupList[0])
@@ -110,47 +72,59 @@ export default function Checkout() {
     }, [])
 
     useEffect(() => {
-        // Skapa PaymentIntent object 
-        // summa anges som cents, så 100 cents blir 1$, vilket är 0.1 kr.
-        console.log("useEffect paymentMethod")
+        // Create paymentIntent on server and grab clientSecret
 
-        if (paymentMethod) {
+        // Different payment methods has different supported currencies, so we need to send it
+        // priceId for getting the products price. Stripe products can have multiple price object, so we have created prices for kr and euro
+        // need to know the choosen payment method of course
+        // type is for price is a reccuring or single payment
+        // email for customer
+        // description for products description
+
+
+        if (paymentMethod && product) {
+            let priceId;
+            //get either the price id for sek or euro currency
+            switch (paymentMethod.currency) {
+                case "sek": priceId = product.priceId_sec; break;
+                case "eur": priceId = product.priceId_eur; break;
+                default: priceId = "sek";
+            }
             const payload = {
                 currency: paymentMethod.currency,
-                priceId: productDetails?.price.id,
+                priceId: priceId,
                 paymentMethod: paymentMethod.paymentMethod,
                 type: productDetails?.price.type,
                 email: customerDetails?.email,
                 description: productDetails?.product.name
             }
             if (clientSecret) {
-                console.log("checkout put: ", payload)
+                //switch to a different payment method.
 
-                axios.put(config.SERVER_URL + "update-payment-intent", payload)
+                paymentService.updatePaymentIntent({ paymentIntentId, payload })
                     .then(data => {
-                        console.log("clientSecret: ", data)
+                        console.log("updated payment")
 
                     })
             }
             else if (paymentMethod) {
-                console.log("checkout post: ", payload)
+                // Create new payment. Retreives clientSecret for identifying the payment. 
+                //Also clientSecret is used by Stripe Elements to identify the payment.
 
-                axios.post(config.SERVER_URL + "create-payment-intent", payload
-                )
+                paymentService.createPaymentIntent(payload)
                     .then((data) => {
-                        console.log("clientSecret: ", data)
                         if (data.data.clientSecret) {
 
                             setClientSecret(data.data.clientSecret)
+                            setPaymentIntentId(data.data.paymentIntentId)
                         }
                     }).catch(err => console.error(err))
             }
-
         }
-
 
     }, [paymentMethod]);
 
+    //grab info of payment method
     const methodPaymentButtonHandler = async (e: any) => {
         const method = paymentMethodsList.find(method => method.paymentName === e.target.value)
 
@@ -158,7 +132,6 @@ export default function Checkout() {
             if (method.paymentName === paymentMethod?.paymentName) {
                 return
             }
-            console.log("methodPaymentButtonHandler ", method)
             setPaymentMethod(method)
         }
     }
@@ -168,11 +141,13 @@ export default function Checkout() {
     }
 
 
+    // Option object used by Elements
     const options: StripeElementsOptions = {
         clientSecret,
         appearance: { theme: 'stripe' },
     };
 
+    // Fires after succesful payment. Returns to a url if there is any. Fires a behaviour if there is any, like changing user type after he/she becomes member
     const paymentSuccess = async () => {
         if (product) {
             if (product.paymentSuccessBehaviour && user) {
@@ -197,13 +172,13 @@ export default function Checkout() {
             return dropdownMethodGroup.paymentMethods.some(method => method === name)
     }
 
+    // Show payment methods as icons
     const displayPaymentMethods = () => {
 
         let buttons;
 
         if (dropdownMethodGroup) {
             const methods = paymentMethodsList.filter(paymentMethod => dropdownMethodGroup.paymentMethods.some(method => paymentMethod.paymentName === method))
-            console.log(methods)
 
             buttons = methods.map(method => (
                 <ButtonIconRound
@@ -211,6 +186,7 @@ export default function Checkout() {
                     value={method.paymentName}
                     onClick={methodPaymentButtonHandler}
                     style={{ backgroundImage: `url(${method.icon})` }}
+                    className={method.paymentName === paymentMethod?.paymentName ? "active" : ""}
                 />
             ))
         }
@@ -296,6 +272,7 @@ export default function Checkout() {
                         <PayCheckoutForm
                             clientSecret={clientSecret}
                             paymentSuccess={paymentSuccess}
+                            productDetails={productDetails}
                         />}
 
                 </Elements>

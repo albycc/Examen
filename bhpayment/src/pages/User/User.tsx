@@ -3,7 +3,7 @@ import TwoColumnLayout from "../../components/layouts/TwoColumnLayout";
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
-import { HeadingL, HeadingM, P } from "../../components/text/Text";
+import { HeadingL, HeadingM, P, Span } from "../../components/text/Text";
 import Tab from "react-bootstrap/Tab";
 import { NavContainer, NavLink } from "./stylings/UserStyles";
 import { NavItem } from "react-bootstrap";
@@ -17,26 +17,35 @@ import DonationWindow from "./DonationWindow";
 import { Button } from "../../components/inputs/Buttons";
 import { ButtonLink } from "../../components/inputs/Links";
 
+
+/*
+User component 
+
+User by router /user
+
+Displays the sites user with info and member status.
+Here you can become member or to donate money.
+
+Have two tabs for displaying user info and member/payments.
+
+You can also donate money here, by clicking donate button and a modal will show up, displaying sum for donation.
+
+*/
 export default function User() {
 
-    const [memberStatus, setMemberStatus] = useState<string>("")
-
-    let accountType = "";
-    const { userId } = useParams()
-    const { user: contextUser } = useContext(UserContext)
-    const [user, setUser] = useState<IUser | null>(null)
-    const [showDonationModal, setShowDonationModal] = useState<boolean>(false)
-
-    console.log("user: ", user)
+    const { userId } = useParams() //grab users id from url
+    const { user: contextUser } = useContext(UserContext) //grab stored user from react context. This is a logged in user
+    const [user, setUser] = useState<IUser | null>(null) //value for user. Used for displaying the users stats
+    const [showDonationModal, setShowDonationModal] = useState<boolean>(false) //show donation modal window
 
     useEffect(() => {
+
+        //get user from server
 
         const exec = async () => {
             if (userId) {
                 const data = await userService.getUserById(userId)
-                console.log("data: ", data)
                 setUser(data)
-
             }
         }
         exec()
@@ -45,7 +54,6 @@ export default function User() {
 
     return (
         <>
-
             <TwoColumnLayout>
                 <Container fluid>
                     <HeadingL>
@@ -101,8 +109,6 @@ export default function User() {
                                                     </Container>
 
                                                 </CardContainer>
-                                                {/* <LoginType accountType={accountType} />
-                                            <Profile accountType={accountType} /> */}
                                             </Tab.Pane>
                                             <Tab.Pane eventKey='payment'>
                                                 <Membership user={user} userParamsId={userId} />
@@ -119,14 +125,15 @@ export default function User() {
                                                         <Row>
                                                             <Col>
                                                                 Användare skapad{" "}
-                                                                {/* <P className='mt-2'>{userCreatedAtDate}</P> */}
                                                             </Col>
                                                         </Row>
                                                     </HeadingM>
                                                 </Row>
                                                 <Row>
-                                                    <P>date created at</P>
-                                                    {/* <P>{User?.created_at?.split("T")[0]}</P> */}
+                                                    <P>
+                                                        {user?.dateCreated?.toString().split("T")[0]}
+
+                                                    </P>
                                                 </Row>
                                             </Container>
                                         </CardContainer>
@@ -143,7 +150,6 @@ export default function User() {
 
                                                         <ButtonLink onClick={() => setShowDonationModal(true)}>Donera pengar</ButtonLink>
 
-                                                        {/* <Link to="/donations">Gå till donering</Link> */}
                                                     </P>
 
 

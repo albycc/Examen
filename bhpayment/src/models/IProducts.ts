@@ -2,7 +2,8 @@ import { IMemberSuccess } from "./IService";
 
 export interface IProduct {
   id: string;
-  priceId: string;
+  priceId_sec: string;
+  priceId_eur: string;
   type: string;
   paymentSuccessBehaviour?: (
     email: string,

@@ -9,6 +9,10 @@ import { useNavigate } from "react-router-dom";
 import { UserContext } from "../../context/UserContext";
 import { FormMessageError } from "../../components/forms/FormMessage";
 
+/*
+Simple form for registering new members.
+
+*/
 
 const RegisterUserForm = () => {
     const [userForm, setUserForm] = useState<IUserRegister>({ name: "", email: "", password: "" })
@@ -21,7 +25,6 @@ const RegisterUserForm = () => {
 
         const user = await userService.registerUser(userForm)
 
-        console.log("user: ", user)
 
         if (user.message === "user-already-exists") {
             setErrorMessage("Användare med sån mejl finns redan")
@@ -34,6 +37,7 @@ const RegisterUserForm = () => {
         }
     }
 
+    //make sure every field has a value before submit button can be enabled
     const disable = () => {
         return !Object.values(userForm).every(value => value !== "")
     }

@@ -19,3 +19,9 @@ export interface IAddress {
   postal_code: string | null;
   state: string | null;
 }
+
+export interface IDropdownMethodGroup {
+  name: string;
+  displayName: string;
+  paymentMethods: string[];
+}

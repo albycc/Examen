@@ -12,6 +12,16 @@ import { Button } from "../../components/inputs/Buttons";
 import LoginForm from "./LoginForm";
 import RegisterUserForm from "./RegisterUserForm";
 
+/*
+Login component for login page
+
+Here you can login or register as a new member.
+
+Has tabs for login and registering users.
+Check Loginform and RegisterUserForm for its form contents.
+
+*/
+
 export default function Home() {
 
     return (

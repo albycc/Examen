@@ -7,6 +7,15 @@ import { useState } from "react";
 import { products } from "../../constants/products";
 import { useNavigate } from "react-router-dom";
 
+/*
+Donation window
+
+a modal window for donating money. From 100 to 2000 kr. 
+
+Navigates to checkout when user accepts
+
+*/
+
 interface Iprops {
     show: boolean;
     cancel: () => void
@@ -17,10 +26,7 @@ const DonationWindow = (props: Iprops) => {
     const [donationChosen, setDonationChosen] = useState<string>("");
     const navigate = useNavigate()
 
-    console.log("donationChosen: ", donationChosen)
-
     const donationButtonChangeHandler = (event: any) => {
-        console.log("change: ", event.target.value)
         setDonationChosen(event.target.value)
     }
 
@@ -29,7 +35,6 @@ const DonationWindow = (props: Iprops) => {
 
         let productId: string = "";
 
-        console.log("productId: ", productId)
         switch (donationChosen) {
             case "100": productId = products[2].id; break;
             case "200": productId = products[3].id; break;
@@ -39,7 +44,6 @@ const DonationWindow = (props: Iprops) => {
             case "1000": productId = products[7].id; break;
             case "2000": productId = products[8].id; break;
         }
-        console.log("productId: ", productId)
         navigate(`/checkout/${productId}`)
 
     }

@@ -14,15 +14,25 @@ import { CardContainer } from "../../components/CardContainer";
 import { ButtonPrim } from "../../components/inputs/Buttons";
 import { Button } from "../../components/inputs/Buttons";
 import { P } from "../../components/text/Text";
-import { FormMessageSuccess } from "../../components/forms/FormMessage";
+import { FormMessageError, FormMessageSuccess } from "../../components/forms/FormMessage";
 
+/*
+Card payment form.
+
+Accepts SEK as currency
+
+Available to all regions
+
+Uses Stripes CardNumberElement, CardCvcElement and CardExpiryElement for cardnumber, cvc and expiry date respectively
+
+*/
+
+//options for cardElement
 const useOptions = (disabled: boolean) => {
-    console.log("use options")
     const options: StripeCardNumberElementOptions = useMemo(
         () => ({
             style: {
                 base: {
-                    padding: "10px",
                     fontSize: "25px",
                     color: "#424770",
                     letterSpacing: "0.025em",
@@ -52,23 +62,18 @@ interface IProps {
 }
 
 const CardCheckoutForm = (props: IProps) => {
-    const stripe = useStripe();
-    const elements = useElements();
+    const stripe = useStripe(); // keeps track of payments
+    const elements = useElements(); //manages Stripes UI components
 
-    const [message, setMessage] = useState<string>("");
+    const [errorMessage, setErrorMessage] = useState<string>("");
 
     const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [formInitialized, setFormInitialized] = useState<boolean>(false)
-    const [customerDetails, setCustomerDetails] = useState<IBillingDetails>();
+    const [customerDetails, setCustomerDetails] = useState<IBillingDetails>(); // customers details, like email and name
     const [disableCardForm, setDisableCardForm] = useState<boolean>(false)
-    const [cardDetailsComplete, setCardDetailsComplete] = useState({ card: false, cvc: false, exp: false })
-    const [cardHolder, setCardHolder] = useState<string>()
+    const [cardDetailsComplete, setCardDetailsComplete] = useState({ card: false, cvc: false, exp: false }) //check to see if card, cvc and expiry date has been filled
     const [paymentSuccessful, setPaymentSuccessful] = useState<boolean>(false)
     const options = useOptions(disableCardForm);
 
-    useEffect(() => {
-        setFormInitialized(true)
-    }, [])
 
     useEffect(() => {
         if (props.customer) {
@@ -77,61 +82,11 @@ const CardCheckoutForm = (props: IProps) => {
 
     }, [props.customer])
 
-    const sendCustomerHandler = (customerDetails: IBillingDetails) => {
-        setCustomerDetails(customerDetails)
-        setDisableCardForm(false)
-    }
-
-    useEffect(() => {
-        if (!stripe) {
-            return;
-        }
-
-        const clientSecret = new URLSearchParams(window.location.search).get(
-            "payment_intent_client_secret"
-        );
-
-        if (!clientSecret) {
-            return;
-        }
-
-        stripe.retrievePaymentIntent(clientSecret).then(({ paymentIntent }) => {
-            if (paymentIntent) {
-                switch (paymentIntent.status) {
-                    case "succeeded":
-                        setMessage("Payment succeeded!");
-                        break;
-                    case "processing":
-                        setMessage("Your payment is processing.");
-                        break;
-                    case "requires_payment_method":
-                        setMessage("Your payment was not successful, please try again.");
-                        break;
-                    default:
-                        setMessage("Something went wrong.");
-                        break;
-                }
-
-            }
-        });
-    }, [stripe]);
-
-    // useEffect(() => {
-    //     if (formInitialized && props.paymentMethod) {
-    //         console.log("props.paymentMethod")
-    //         elements?.update({
-    //             mode: 'payment',
-    //             paymentMethodTypes: [props.paymentMethod.paymentMethod],
-    //             currency: props.paymentMethod.currency,
-    //             amount: 1200
-    //         })
-
-    //     }
-
-    // }, [props.paymentMethod])
-
+    //fires after user submits the payment form
     const onSubmitHandler = async (e: React.FormEvent) => {
         e.preventDefault()
+
+        //need to make sure stripe and elements are loaded to make payment
         if (!stripe || !elements) {
             console.error("Stripe has not yet been loaded")
             return;
@@ -140,34 +95,31 @@ const CardCheckoutForm = (props: IProps) => {
         setIsLoading(true);
         setDisableCardForm(true)
 
-        console.log("processing card payment")
 
         const cardElement = elements.getElement(CardNumberElement)
 
+        //card payment uses confirmCardPayment method to complete the purchase
+        //need to know the card number from CardNumberElement and customers details, as well as pass the clientSecret
         if (cardElement !== null && customerDetails) {
             const { error, paymentIntent } = await stripe.confirmCardPayment(props.clientSecret, {
                 payment_method: {
                     card: cardElement,
                     billing_details: customerDetails
-
                 },
-
             });
 
-            console.log("paymentIntent: ", paymentIntent)
 
             if (error && error.message) {
-                setMessage(error.message)
+                //there was an error
+                setErrorMessage("Nåt fel hände. Försök att välja annan betalmetod eller försök senare.")
                 console.error(error.message)
             }
             else if (paymentIntent?.status === 'succeeded') {
-                setMessage('Done!')
+                // payment succesful
                 props.paymentSuccess()
                 setPaymentSuccessful(true)
             }
-
         }
-
     }
 
     const disable = () => {
@@ -175,17 +127,16 @@ const CardCheckoutForm = (props: IProps) => {
         return !Object.values(cardDetailsComplete).every(value => value)
     }
 
-    console.log("isLoading: ", isLoading)
-    console.log("stripe: ", stripe)
-    console.log("elements: ", elements)
-    console.log("disable: ", disable())
-    console.log("disableCardForm: ", disableCardForm)
-
-
     return (
         <Form onSubmit={onSubmitHandler}>
 
             <CardContainer>
+                {errorMessage ? <Row>
+                    <FormMessageError>
+                        {errorMessage}
+                    </FormMessageError>
+                </Row>
+                    : null}
                 <Row>
                     <Col>
                         <Form.Label>Kort</Form.Label>
@@ -195,14 +146,10 @@ const CardCheckoutForm = (props: IProps) => {
                             onChange={(event => { console.log(event); setCardDetailsComplete({ ...cardDetailsComplete, card: event.complete }) })}
 
                         />
-
-
-
                     </Col>
-
                 </Row>
-                <Row>
-                    <Col xl={4}>
+                <Row >
+                    <Col sm={4} className="my-2">
                         <Form.Label>CVC</Form.Label>
                         <CardCvcElement
                             options={options}
@@ -210,7 +157,7 @@ const CardCheckoutForm = (props: IProps) => {
                             onChange={(event => setCardDetailsComplete({ ...cardDetailsComplete, cvc: event.complete }))}
                         />
                     </Col>
-                    <Col xl={8}>
+                    <Col sm={8} className="my-2">
                         <Form.Label>Utgångsdatum</Form.Label>
                         <CardExpiryElement
                             options={options}
@@ -224,7 +171,7 @@ const CardCheckoutForm = (props: IProps) => {
                 <Row>
                     <Col className="mt-3 d-flex justify-content-end">
                         {paymentSuccessful ?
-                            <FormMessageSuccess>Betald!</FormMessageSuccess>
+                            <FormMessageSuccess className="w-100">Betald!</FormMessageSuccess>
 
                             :
                             <Button type="submit" disabled={isLoading || !stripe || !elements || disable()}>Betala</Button>

@@ -6,7 +6,14 @@ import { useState } from "react";
 import { ButtonLink } from "../../components/inputs/Links";
 import DonationWindow from "../User/DonationWindow";
 
+/*
+Home component for main page
 
+Not much to see here, except for donation.
+
+Wanted to add donation feature here so you don't have to go to users page to do that.
+
+*/
 export default function Home() {
 
     const [showDonationModal, setShowDonationModal] = useState<boolean>(false)

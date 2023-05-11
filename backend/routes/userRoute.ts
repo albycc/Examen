@@ -8,14 +8,8 @@ import {
   putNewUser,
 } from "../db/utils/userUtils";
 import { IUser } from "../models/IUser";
-const fs = require("fs");
 
 export const userRoute = Express.Router();
-
-interface IRequestBodyRegister {
-  email: string;
-  type: "member" | "subscription";
-}
 
 interface IRequestBodyLogin {
   name: string;

@@ -9,7 +9,10 @@ import { useNavigate } from "react-router-dom"
 import { IUser } from "../../models/IUser"
 import { UserContext } from "../../context/UserContext"
 
+/*
+Simple form for logging in user.
 
+*/
 const LoginForm = () => {
 
     const [email, setEmail] = useState<string>("")
@@ -21,25 +24,26 @@ const LoginForm = () => {
     const loginButtonHandler = async (event: React.FormEvent) => {
         event.preventDefault();
         const response = await userService.login(email, password)
-        console.log(response)
+
+        //does user already exist with that email?
         if (response.message === "user-already-exists") {
             setErrorMessage("Finns ingen sån användare")
             return;
         }
+        //...or incorrect password?
         else if (response.message === "incorrect-password") {
             setErrorMessage("Fel lösenord")
             return;
         }
+        //loggs in user
         else {
             const user: IUser = await userService.getUserByEmail(email)
-            console.log("user: ", user)
             setErrorMessage("")
             await setUserState(user)
 
             navigate(`/user/${user.id}`)
 
         }
-        console.log(response)
 
     }
 

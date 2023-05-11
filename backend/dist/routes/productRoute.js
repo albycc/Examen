@@ -16,7 +16,7 @@ exports.productRoute = void 0;
 const express_1 = __importDefault(require("express"));
 const stripeVars_1 = __importDefault(require("../stripe/stripeVars"));
 exports.productRoute = express_1.default.Router();
-exports.productRoute.get("/getProduct/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.productRoute.get("/api/getProduct/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         let { id } = req.params;
         console.log("id: ", id);

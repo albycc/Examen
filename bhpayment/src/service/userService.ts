@@ -2,6 +2,15 @@ import axios from "axios";
 import config from "../config.json";
 import { IUserRegister } from "../models/IUser";
 
+/*
+service file for calling different routes for the sites users from server
+
+getUserByEmail - retrive a BH user from server by email
+getUserById - retrive a BH user from server by id
+login - loggs in the user. It returns the user object if it finds an existing user. Returns messages if user doesn't exists or password is incorrect
+registerUser - creates user for site. Returns the user object. Returns message if user with email already exists.
+registerMember - registers a user after he/she pays for membership. The users type will be either member or subscription. Returns user object
+*/
 export const userService = {
   getUserByEmail: async (email: string) => {
     const res = await axios.get(
