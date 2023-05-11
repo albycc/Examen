@@ -10,6 +10,8 @@ interface Iprops {
     onInput?: (event: React.ChangeEvent<HTMLInputElement>) => void;
     onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
     disabled?: boolean;
+    value?: string;
+    defaultValue?: string;
 }
 
 const FieldInput = forwardRef<HTMLInputElement, Iprops>((props, ref) => {
@@ -26,6 +28,8 @@ const FieldInput = forwardRef<HTMLInputElement, Iprops>((props, ref) => {
                 onInput={props.onInput}
                 onChange={props.onChange}
                 disabled={props.disabled}
+                value={props.value}
+                defaultValue={props.defaultValue}
             />
             <Form.Text></Form.Text>
         </Form.Group>

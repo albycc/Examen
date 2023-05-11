@@ -25,7 +25,6 @@ exports.paymentRoute.post("/create-payment-intent", (req, res) => __awaiter(void
             description: "BH customer",
             email,
         });
-        console.log("customer: ", customer);
         if (type === "recurring") {
             const subscription = yield stripeVars_1.default.subscriptions.create({
                 customer: customer.id,
@@ -45,12 +44,11 @@ exports.paymentRoute.post("/create-payment-intent", (req, res) => __awaiter(void
                 customer: customer.id,
                 price: priceId,
             });
-            console.log("invoiceItem: ", invoiceItem);
             let { amount } = invoiceItem;
-            if (currency === "eur") {
-                let euro = (amount / 100) * 0.087952246;
-                amount = (Math.round(euro * 100) / 100) * 100;
-            }
+            // if (currency === "eur") {
+            //   let euro = (amount / 100) * 0.087952246;
+            //   amount = (Math.round(euro * 100) / 100) * 100;
+            // }
             const paymentIntent = yield stripeVars_1.default.paymentIntents.create({
                 amount: amount,
                 currency: currency,
@@ -65,6 +63,7 @@ exports.paymentRoute.post("/create-payment-intent", (req, res) => __awaiter(void
         }
     }
     catch (err) {
+        console.log(err);
         res.status(404).send({ error: err });
     }
 }));

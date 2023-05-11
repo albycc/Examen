@@ -18,14 +18,11 @@ const LoginForm = () => {
     const navigate = useNavigate()
     const { setUserState } = useContext(UserContext)
 
-    console.log(email)
-    console.log(password)
-
     const loginButtonHandler = async (event: React.FormEvent) => {
         event.preventDefault();
         const response = await userService.login(email, password)
         console.log(response)
-        if (response.message === "no-such-user") {
+        if (response.message === "user-already-exists") {
             setErrorMessage("Finns ingen sån användare")
             return;
         }
@@ -36,6 +33,7 @@ const LoginForm = () => {
         else {
             const user: IUser = await userService.getUserByEmail(email)
             console.log("user: ", user)
+            setErrorMessage("")
             await setUserState(user)
 
             navigate(`/user/${user.id}`)

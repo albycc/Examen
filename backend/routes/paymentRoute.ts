@@ -30,7 +30,6 @@ paymentRoute.post("/create-payment-intent", async (req, res) => {
       description: "BH customer",
       email,
     });
-    console.log("customer: ", customer);
 
     if (type === "recurring") {
       const subscription = await stripe.subscriptions.create({
@@ -52,14 +51,13 @@ paymentRoute.post("/create-payment-intent", async (req, res) => {
         customer: customer.id,
         price: priceId,
       });
-      console.log("invoiceItem: ", invoiceItem);
 
       let { amount } = invoiceItem;
 
-      if (currency === "eur") {
-        let euro = (amount / 100) * 0.087952246;
-        amount = (Math.round(euro * 100) / 100) * 100;
-      }
+      // if (currency === "eur") {
+      //   let euro = (amount / 100) * 0.087952246;
+      //   amount = (Math.round(euro * 100) / 100) * 100;
+      // }
       const paymentIntent = await stripe.paymentIntents.create({
         amount: amount,
         currency: currency,
@@ -76,6 +74,7 @@ paymentRoute.post("/create-payment-intent", async (req, res) => {
       });
     }
   } catch (err) {
+    console.log(err);
     res.status(404).send({ error: err });
   }
 });

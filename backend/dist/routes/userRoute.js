@@ -67,8 +67,9 @@ exports.userRoute.post("/api/register", (req, res) => __awaiter(void 0, void 0, 
             type: "user",
             dateCreated: new Date(),
         };
+        console.log("user: ", user);
         (0, userUtils_1.putNewUser)(user);
-        res.send({ user });
+        res.send(user);
     }
 }));
 exports.userRoute.post("/registerMembership", (req, res) => __awaiter(void 0, void 0, void 0, function* () {

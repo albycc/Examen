@@ -5,15 +5,11 @@ import config from "../../config.json"
 import CardCheckoutForm from "./CardCheckoutForm";
 import SepaCheckoutForm from "./SepaCheckoutForm";
 import PayCheckoutForm from "./PayCheckoutForm";
-import Form from "react-bootstrap/Form"
-import Button from "react-bootstrap/Button"
 import Dropdown from "../../components/inputs/Dropdown"
-import DropdownButton from "react-bootstrap/DropdownButton"
 import { IBillingDetails, IPaymentMethod } from "../../models/ICheckout";
 import axios from "axios";
 import CustomerFields from "./CustomerFields";
 import Container from "react-bootstrap/Container"
-import Col from "react-bootstrap/Col"
 import Row from "react-bootstrap/Row"
 import { CardContainer } from "../../components/CardContainer";
 import { HeadingL, HeadingM, P } from "../../components/text/Text";
@@ -26,7 +22,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import { productService } from "../../service/productsService";
 import { IProduct, IProductDetails } from "../../models/IProducts";
 import { products } from "../../constants/products";
-import { IMemberSuccess } from "../../models/IService";
 import { UserContext } from "../../context/UserContext";
 
 const stripePromise = loadStripe(config.STRIPE_PUBLIC_API_TEST_KEY)
@@ -253,7 +248,7 @@ export default function Checkout() {
                 : null
             }
 
-            <CustomerFields sendCustomer={sendCustomerHandler} />
+            <CustomerFields sendCustomer={sendCustomerHandler} user={user} />
 
             {customerDetails ? <CardContainer>
                 <Row>

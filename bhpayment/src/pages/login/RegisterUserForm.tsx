@@ -7,37 +7,47 @@ import { IUserRegister } from "../../models/IUser";
 import { userService } from "../../service/userService";
 import { useNavigate } from "react-router-dom";
 import { UserContext } from "../../context/UserContext";
+import { FormMessageError } from "../../components/forms/FormMessage";
 
 
 const RegisterUserForm = () => {
     const [userForm, setUserForm] = useState<IUserRegister>({ name: "", email: "", password: "" })
     const { setUserState } = useContext(UserContext)
     const navigate = useNavigate()
+    const [errorMessage, setErrorMessage] = useState<string>("")
 
     const registerUserHandler = async (event: React.FormEvent) => {
         event.preventDefault()
 
         const user = await userService.registerUser(userForm)
 
-        if (user) {
+        console.log("user: ", user)
+
+        if (user.message === "user-already-exists") {
+            setErrorMessage("Användare med sån mejl finns redan")
+            return;
+        } else if (user) {
             await setUserState(user)
+            setErrorMessage("")
             navigate(`/user/${user.id}`)
 
-
         }
-
-
-
-        console.log(userForm)
     }
 
     const disable = () => {
         return !Object.values(userForm).every(value => value !== "")
     }
 
-
     return (
         <CardContainer>
+            {errorMessage ?
+                <FormMessageError>
+                    {errorMessage}
+
+                </FormMessageError>
+                :
+                null
+            }
             <Form onSubmit={registerUserHandler}>
                 <FieldInput
                     type="text"

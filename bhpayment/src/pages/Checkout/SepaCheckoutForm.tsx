@@ -24,7 +24,9 @@ import Row from "react-bootstrap/Row"
 import CustomerFields from "./CustomerFields";
 import StripeInputStyle from "./stylings/StripeInput.module.css"
 import { CardContainer } from "../../components/CardContainer";
-import { FormMessageSuccess } from "./stylings/CheckoutStyles";
+import { theme } from "../../themes/theme"
+import { Col } from "react-bootstrap";
+import { FormMessageSuccess } from "../../components/forms/FormMessage";
 
 interface IProps {
     clientSecret: string;
@@ -40,9 +42,9 @@ const useOptions = (countryCode: string, disabled: boolean) => {
             placeholderCountry: countryCode,
             style: {
                 base: {
-
+                    padding: "10px",
                     fontSize: "25px",
-                    color: "#424770",
+                    color: "#5B3442",
                     letterSpacing: "0.025em",
                     fontFamily: "Roboto, Source Code Pro, monospace, SFUIDisplay",
                     "::placeholder": {
@@ -172,23 +174,36 @@ const SepaCheckoutForm = (props: IProps) => {
             }} /> */}
             <CardContainer>
                 <Row>
-                    <Form.Group>
-                        <Form.Label>EU Länder</Form.Label>
-                        <Form.Select onChange={(event) => setCountryCode(event.target.value)} value={countryCode} disabled={disableSepaForm}>
+                    <Col>
+                        <div className="my-2">
+                            <Form.Group>
+                                <Form.Label>EU Länder</Form.Label>
+                                <Form.Select onChange={(event) => setCountryCode(event.target.value)} value={countryCode} disabled={disableSepaForm}>
 
-                            {euroCountries.map(option => <option key={option.value} value={option.value}>{option.name}</option>)}
-                        </Form.Select>
+                                    {euroCountries.map(option => <option key={option.value} value={option.value}>{option.name}</option>)}
+                                </Form.Select>
 
-                    </Form.Group>
-                    <IbanElement options={options} className={StripeInputStyle["card-element"]} onChange={(event) => setSepaDebitFilled(event.complete)} />
+                            </Form.Group>
+
+                        </div>
+                        <div className="my-2">
+                            <Form.Label>SEPA Iban nummer</Form.Label>
+                            <IbanElement options={options} className={StripeInputStyle["card-element"]} onChange={(event) => setSepaDebitFilled(event.complete)} />
+
+                        </div>
+
+                    </Col>
 
                 </Row>
                 <Row>
-                    {paymentSuccessful ?
-                        <FormMessageSuccess>Betald!</FormMessageSuccess>
-                        :
-                        <Button type="submit" disabled={isLoading || !stripe || !elements || !sepaDebitFilled} >Betala</Button>
-                    }
+                    <Col className="mt-3 d-flex justify-content-end">
+                        {paymentSuccessful ?
+                            <FormMessageSuccess>Betald!</FormMessageSuccess>
+                            :
+                            <Button type="submit" disabled={isLoading || !stripe || !elements || !sepaDebitFilled} >Betala</Button>
+                        }
+
+                    </Col>
                 </Row>
             </CardContainer>
         </Form>

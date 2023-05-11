@@ -23,16 +23,3 @@ export const ButtonIconRound = styled.button`
 	}
 
 `
-
-const FormMessage = styled.div`
-	text-align: center;
-	padding:10px;
-	margin-top: 10px;
-	margin-bottom: 10px;
-
-
-`
-
-export const FormMessageSuccess = styled(FormMessage)`
-	background-color: lightgreen;
-`

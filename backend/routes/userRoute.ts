@@ -77,9 +77,11 @@ userRoute.post("/api/register", async (req: Request, res: Response) => {
       type: "user",
       dateCreated: new Date(),
     };
+
+    console.log("user: ", user);
     putNewUser(user);
 
-    res.send({ user });
+    res.send(user);
   }
 });
 

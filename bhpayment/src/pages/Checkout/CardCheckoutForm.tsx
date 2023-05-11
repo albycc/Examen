@@ -14,7 +14,7 @@ import { CardContainer } from "../../components/CardContainer";
 import { ButtonPrim } from "../../components/inputs/Buttons";
 import { Button } from "../../components/inputs/Buttons";
 import { P } from "../../components/text/Text";
-import { FormMessageSuccess } from "./stylings/CheckoutStyles";
+import { FormMessageSuccess } from "../../components/forms/FormMessage";
 
 const useOptions = (disabled: boolean) => {
     console.log("use options")
@@ -22,6 +22,7 @@ const useOptions = (disabled: boolean) => {
         () => ({
             style: {
                 base: {
+                    padding: "10px",
                     fontSize: "25px",
                     color: "#424770",
                     letterSpacing: "0.025em",
@@ -35,7 +36,8 @@ const useOptions = (disabled: boolean) => {
                 },
 
             },
-            disabled: disabled
+            disabled: disabled,
+            showIcon: true
 
         }), [disabled]
     );
@@ -185,33 +187,50 @@ const CardCheckoutForm = (props: IProps) => {
 
             <CardContainer>
                 <Row>
-                    <Form.Label>Kort</Form.Label>
-                    <CardNumberElement
-                        options={options}
-                        className={StripeInputStyle["card-element"]}
-                        onChange={(event => setCardDetailsComplete({ ...cardDetailsComplete, card: event.complete }))}
-                    />
-                    <Form.Label>CVC</Form.Label>
-                    <CardCvcElement
-                        options={options}
-                        className={StripeInputStyle["card-element"]}
-                        onChange={(event => setCardDetailsComplete({ ...cardDetailsComplete, cvc: event.complete }))}
-                    />
-                    <Form.Label>Utgångsdatum</Form.Label>
-                    <CardExpiryElement
-                        options={options}
-                        className={StripeInputStyle["card-element"]}
-                        onChange={(event => setCardDetailsComplete({ ...cardDetailsComplete, exp: event.complete }))}
-                    />
+                    <Col>
+                        <Form.Label>Kort</Form.Label>
+                        <CardNumberElement
+                            options={options}
+                            className={StripeInputStyle["card-element"]}
+                            onChange={(event => { console.log(event); setCardDetailsComplete({ ...cardDetailsComplete, card: event.complete }) })}
+
+                        />
+
+
+
+                    </Col>
 
                 </Row>
                 <Row>
-                    {paymentSuccessful ?
-                        <FormMessageSuccess>Betald!</FormMessageSuccess>
+                    <Col xl={4}>
+                        <Form.Label>CVC</Form.Label>
+                        <CardCvcElement
+                            options={options}
+                            className={StripeInputStyle["card-element"]}
+                            onChange={(event => setCardDetailsComplete({ ...cardDetailsComplete, cvc: event.complete }))}
+                        />
+                    </Col>
+                    <Col xl={8}>
+                        <Form.Label>Utgångsdatum</Form.Label>
+                        <CardExpiryElement
+                            options={options}
+                            className={StripeInputStyle["card-element"]}
+                            onChange={(event => setCardDetailsComplete({ ...cardDetailsComplete, exp: event.complete }))}
+                        />
 
-                        :
-                        <Button type="submit" disabled={isLoading || !stripe || !elements || disable()}>Betala</Button>
-                    }
+                    </Col>
+
+                </Row>
+                <Row>
+                    <Col className="mt-3 d-flex justify-content-end">
+                        {paymentSuccessful ?
+                            <FormMessageSuccess>Betald!</FormMessageSuccess>
+
+                            :
+                            <Button type="submit" disabled={isLoading || !stripe || !elements || disable()}>Betala</Button>
+                        }
+
+                    </Col>
 
                 </Row>
 
