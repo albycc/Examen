@@ -7,7 +7,6 @@ import { HeadingL, LinkStyled, P, Span } from "../../components/text/Text";
 import { products } from "../../constants/products"
 import { IUser } from "../../models/IUser";
 import { LinkButton } from "../../components/inputs/Links";
-import config from "../../config.json"
 
 /*
 Membership component 

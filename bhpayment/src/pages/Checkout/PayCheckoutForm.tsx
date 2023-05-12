@@ -5,7 +5,7 @@ import { IBillingDetails } from "../../models/ICheckout";
 import { CardContainer } from "../../components/CardContainer";
 import { Container, Row } from "react-bootstrap";
 import { FormMessageError, FormMessageSuccess } from "../../components/forms/FormMessage";
-import { IProduct, IProductDetails } from "../../models/IProducts";
+import { IProductDetails } from "../../models/IProducts";
 
 /*
 Wallet payment form.

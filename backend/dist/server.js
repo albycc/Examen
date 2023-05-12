@@ -8,7 +8,6 @@ const cors_1 = __importDefault(require("cors"));
 const productRoute_1 = require("./routes/productRoute");
 const paymentRoute_1 = require("./routes/paymentRoute");
 const userRoute_1 = require("./routes/userRoute");
-const stripe = require("stripe")("sk_test_51MnKfQHKeMBcSTk8kHbdB8luw8P7WBLFKbIYo5qy2sYT8kVbwGSXwDKVWBb7U4SoYAPp304TGsUHwGsbtH0dhVoh001EUjKJwR");
 const app = (0, express_1.default)();
 const routes = express_1.default.Router();
 app.use(express_1.default.static("public"));

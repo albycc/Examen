@@ -1,6 +1,6 @@
 import Modal from "react-bootstrap/Modal"
 import { ModalWindow } from "../../components/modal/ModalWindow"
-import { HeadingL, P } from "../../components/text/Text"
+import { HeadingL } from "../../components/text/Text"
 import Form from "react-bootstrap/Form";
 import { Button, ButtonOption, ButtonSec } from "../../components/inputs/Buttons";
 import { useState } from "react";

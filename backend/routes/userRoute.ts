@@ -1,5 +1,4 @@
 import Express, { Request, Response } from "express";
-import stripe from "../stripe/stripeVars";
 import {
   editUser,
   findUserByEmail,

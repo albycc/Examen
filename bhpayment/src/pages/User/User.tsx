@@ -3,7 +3,7 @@ import TwoColumnLayout from "../../components/layouts/TwoColumnLayout";
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
-import { HeadingL, HeadingM, P, Span } from "../../components/text/Text";
+import { HeadingL, HeadingM, P } from "../../components/text/Text";
 import Tab from "react-bootstrap/Tab";
 import { NavContainer, NavLink } from "./stylings/UserStyles";
 import { NavItem } from "react-bootstrap";
@@ -14,7 +14,6 @@ import { userService } from "../../service/userService";
 import { UserContext } from "../../context/UserContext";
 import { IUser } from "../../models/IUser";
 import DonationWindow from "./DonationWindow";
-import { Button } from "../../components/inputs/Buttons";
 import { ButtonLink } from "../../components/inputs/Links";
 
 

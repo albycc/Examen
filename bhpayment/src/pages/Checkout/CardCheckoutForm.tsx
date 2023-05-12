@@ -1,19 +1,13 @@
 import React, { useState, useEffect, useMemo } from "react"
-import { PaymentElement, useStripe, useElements, CardNumberElement, CardExpiryElement, CardCvcElement } from "@stripe/react-stripe-js";
-import { StripePaymentElementOptions, StripeCardNumberElementOptions } from '@stripe/stripe-js';
+import { useStripe, useElements, CardNumberElement, CardExpiryElement, CardCvcElement } from "@stripe/react-stripe-js";
+import { StripeCardNumberElementOptions } from '@stripe/stripe-js';
 import Form from "react-bootstrap/Form"
-import { IPaymentMethod } from "../../models/ICheckout";
-import { useLocation } from "react-router-dom";
 import { IBillingDetails } from "../../models/ICheckout";
-import CustomerFields from "./CustomerFields";
-import Container from "react-bootstrap/Container"
 import Col from "react-bootstrap/Col"
 import Row from "react-bootstrap/Row"
 import StripeInputStyle from "./stylings/StripeInput.module.css"
 import { CardContainer } from "../../components/CardContainer";
-import { ButtonPrim } from "../../components/inputs/Buttons";
 import { Button } from "../../components/inputs/Buttons";
-import { P } from "../../components/text/Text";
 import { FormMessageError, FormMessageSuccess } from "../../components/forms/FormMessage";
 
 /*
@@ -143,7 +137,7 @@ const CardCheckoutForm = (props: IProps) => {
                         <CardNumberElement
                             options={options}
                             className={StripeInputStyle["card-element"]}
-                            onChange={(event => { console.log(event); setCardDetailsComplete({ ...cardDetailsComplete, card: event.complete }) })}
+                            onChange={(event => setCardDetailsComplete({ ...cardDetailsComplete, card: event.complete }))}
 
                         />
                     </Col>
